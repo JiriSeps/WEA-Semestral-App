@@ -1,16 +1,18 @@
-version: '3.8'  # Doporučuji použít novější verzi, např. 3.8
+version: '3.8'
 
 services:
   backend:
     build:
       context: ./backend
+    image: jansodomka/wea_semestralni_prace:backend
     ports:
       - "5000:5000"
 
   frontend:
     build:
       context: ./frontend
+    image: jansodomka/wea_semestralni_prace:frontend
     ports:
-      - "3000:80"  # Mapování portu 80 z Nginx na port 3000 hostitelského systému
+      - "3000:80"
     depends_on:
       - backend
