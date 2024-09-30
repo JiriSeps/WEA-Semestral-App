@@ -1,2 +1,5 @@
 Frontend: React
 Backend: Flask python
+
+
+errors logger, rozdelit loggery
