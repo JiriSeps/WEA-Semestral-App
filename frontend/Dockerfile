@@ -29,7 +29,7 @@ WORKDIR /app
 COPY --from=build /app/build /app/build
 
 # Exponování portu 3000
-EXPOSE 3000
+EXPOSE 3007
 
 # Spuštění aplikace pomocí http-server
-CMD ["http-server", "build", "-p", "3000"]
+CMD ["http-server", "build", "-p", "3007"]

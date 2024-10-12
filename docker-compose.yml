@@ -1,18 +1,20 @@
 version: '3.8'
 
 services:
-  backend:
+  sk08-web:  # Backend služba
     build:
       context: ./backend
     image: jansodomka/wea_semestralni_prace:backend
     ports:
-      - "5000:5000"
+      - "8007:8007"
+    volumes:
+      - ./backend/logs:/app/logs  # Připojení volume pro logy na host
 
   frontend:
     build:
       context: ./frontend
     image: jansodomka/wea_semestralni_prace:frontend
     ports:
-      - "3000:3000"
+      - "3007:3007"
     depends_on:
-      - backend
+      - sk08-web
