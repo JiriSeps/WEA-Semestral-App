@@ -1,14 +1,20 @@
 version: '3.8'
 
 services:
-  sk08-web:  # Backend služba
+  sk08-web:
     build:
       context: ./backend
     image: jansodomka/wea_semestralni_prace:backend
     ports:
       - "8007:8007"
     volumes:
-      - ./backend/logs:/app/logs  # Připojení volume pro logy na host
+      - ./backend:/app
+      - ./backend/logs:/app/logs
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+      - PYTHONPATH=/app
+    depends_on:
+      - db
 
   frontend:
     build:
@@ -18,3 +24,26 @@ services:
       - "3007:3007"
     depends_on:
       - sk08-web
+
+  db:  # Služba pro PostgreSQL
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "50007:5432"  # Exponovaný port databáze
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # Uložení dat
+
+  sql-client:  # SQL klient
+    image: adminer  # Například Adminer jako SQL klient
+    restart: always
+    ports:
+      - "10007:8080"  # Exponovaný port pro SQL klienta
+    depends_on:
+      - db  # Závislost na databázi
+
+volumes:
+  pgdata:  # Definice persistentního volume

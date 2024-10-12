@@ -1,38 +1,36 @@
 .App {
   text-align: center;
+  padding: 20px;
+  font-family: Arial, sans-serif; /* Přidání moderního fontu */
+  background-color: #f4f4f4; /* Světle šedé pozadí pro aplikaci */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+table {
+  width: 100%;
+  border-collapse: collapse; /* Sloučení okrajů */
+  margin-top: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+th, td {
+  padding: 10px;
+  text-align: left; /* Zarovnání textu vlevo */
+  border-bottom: 1px solid #ddd; /* Jemný oddělovací okraj */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+th {
+  background-color: #4CAF50; /* Zelené pozadí pro hlavičky */
+  color: white; /* Bílý text pro hlavičky */
 }
 
-.App-link {
-  color: #61dafb;
+tr:hover {
+  background-color: #f1f1f1; /* Pozadí pro řádek při najetí myši */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+img {
+  border-radius: 5px; /* Zaoblení rohů obrázků */
+  transition: transform 0.2s; /* Přechod pro zvětšení obrázků */
+}
+
+img:hover {
+  transform: scale(1.1); /* Zvětšení obrázku při najetí myši */
 }
