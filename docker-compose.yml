@@ -14,6 +14,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
       - PYTHONPATH=/app
+      - FLASK_ENV=development  # Nastavení vývojového prostředí pro mock data
     depends_on:
       - db
     networks:
@@ -31,7 +32,7 @@ services:
     networks:
       - internal
 
-  db:  # Služba pro PostgreSQL
+  db:
     image: postgres:17
     restart: always
     environment:
@@ -39,24 +40,24 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     ports:
-      - "50007:5432"  # Exponovaný port databáze
+      - "50007:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data  # Uložení dat
+      - pgdata:/var/lib/postgresql/data
     networks:
       - internal
 
-  sql-client:  # SQL klient
-    image: adminer  # Například Adminer jako SQL klient
+  sql-client:
+    image: adminer
     restart: always
     ports:
-      - "10007:8080"  # Exponovaný port pro SQL klienta
+      - "10007:8080"
     depends_on:
-      - db  # Závislost na databázi
+      - db
     networks:
       - internal
 
 volumes:
-  pgdata:  # Definice persistentního volume
+  pgdata:
 networks:
   cdb-network:
     name: cdb-network
