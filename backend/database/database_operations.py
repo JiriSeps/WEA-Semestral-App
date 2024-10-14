@@ -44,6 +44,7 @@ def load_mock_data():
     
     return books
 
+
 # Funkce pro přidání knihy do databáze
 def add_book(isbn10, isbn13, title, author, genres=None, cover_image=None, critics_rating=None, 
              year_of_publication=None, number_of_pages=None, average_customer_rating=None, number_of_ratings=None):

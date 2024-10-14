@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from database.models import db, Book
 from database.database_operations import get_all_books
 
+
 # Vytvoření a konfigurace aplikace
 app = Flask(__name__)
 CORS(app)
