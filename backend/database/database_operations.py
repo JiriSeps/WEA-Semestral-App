@@ -22,9 +22,10 @@ def load_mock_data():
             cover_image = row[6]  # Cover_Image
             description = row[7]  # Description
             year_of_publication = int(row[8]) if row[8] else None  # Year_of_Publication
-            critics_rating = float(row[9]) if row[9] else None  # Critics_Rating
             number_of_pages = int(row[10]) if row[10] else None  # Number_of_Pages
-            average_customer_rating = int(row[11]) if row[11] else None  # Average_Customer_Rating
+            average_customer_rating = float(row[9]) if row[9] else None  # Average_Customer_Rating
+            number_of_ratings = int(row[11]) if row[11] else None  # Average_Customer_Rating
+            
 
             book = {
                 'ISBN10': isbn10,
@@ -34,10 +35,10 @@ def load_mock_data():
                 'Genres': genres,
                 'Cover_Image': cover_image,
                 'Description': description,
-                'Critics_Rating': critics_rating,
                 'Year_of_Publication': year_of_publication,
                 'Number_of_Pages': number_of_pages,
                 'Average_Customer_Rating': average_customer_rating,
+                'Number_of_Ratings': number_of_ratings,
             }
             
             books.append(book)

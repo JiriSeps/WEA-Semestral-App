@@ -62,10 +62,10 @@ def get_books():
         'Genres': book['Genres'],
         'Cover_Image': book['Cover_Image'],
         'Description': book['Description'],
-        'Critics_Rating': book['Critics_Rating'],
         'Year_of_Publication': book['Year_of_Publication'],
         'Number_of_Pages': book['Number_of_Pages'],
         'Average_Customer_Rating': book['Average_Customer_Rating'],
+        'Number_of_Ratings': book['Number_of_Ratings'],
     } for book in books]
 
     return jsonify(books_data)
