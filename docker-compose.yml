@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   sk08-web:
+    container_name: sk08-web
     build:
       context: ./backend
     image: jansodomka/wea_semestralni_prace:backend
@@ -9,12 +10,15 @@ services:
       - "8007:8007"
     volumes:
       - ./backend:/app
-      - ./backend/logs:/app/logs
+      - /home/cerny/logs/sk08-web:/app/logs
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
       - PYTHONPATH=/app
     depends_on:
       - db
+    networks:
+      - internal
+      - cdb-network
 
   frontend:
     build:
@@ -24,6 +28,8 @@ services:
       - "3007:3007"
     depends_on:
       - sk08-web
+    networks:
+      - internal
 
   db:  # Služba pro PostgreSQL
     image: postgres:17
@@ -36,6 +42,8 @@ services:
       - "50007:5432"  # Exponovaný port databáze
     volumes:
       - pgdata:/var/lib/postgresql/data  # Uložení dat
+    networks:
+      - internal
 
   sql-client:  # SQL klient
     image: adminer  # Například Adminer jako SQL klient
@@ -44,6 +52,15 @@ services:
       - "10007:8080"  # Exponovaný port pro SQL klienta
     depends_on:
       - db  # Závislost na databázi
+    networks:
+      - internal
 
 volumes:
   pgdata:  # Definice persistentního volume
+networks:
+  cdb-network:
+    name: cdb-network
+    driver: bridge
+    external: true
+  internal:
+    driver: bridge
