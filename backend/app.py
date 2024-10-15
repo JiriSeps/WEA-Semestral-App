@@ -5,7 +5,8 @@ from flask_cors import CORS
 import os
 from flask_sqlalchemy import SQLAlchemy
 from database.models import db, Book
-from database.database_operations import get_all_books, search_books, load_mock_data_to_db
+from database.database_operations import get_all_books, search_books, load_mock_data_to_db, add_book
+import requests
 
 # Vytvoření a konfigurace aplikace
 app = Flask(__name__)
@@ -83,6 +84,49 @@ def get_books():
         'per_page': per_page,
         'total_pages': (total_books + per_page - 1) // per_page
     })
+
+    # Endpoint pro získání dat z externí REST API služby a uložení do databáze
+@app.route('/api/fetch_books', methods=['GET'])
+def fetch_books():
+    try:
+        response = requests.get('http://wea.nti.tul.cz:1337/api/books')
+        if response.status_code == 200:
+            books_data = response.json()
+
+            for book in books_data:
+                isbn10 = book.get('ISBN10')
+                isbn13 = book.get('ISBN13')
+                title = book.get('Title')
+                author = book.get('Author')
+                genres = book.get('Genres')
+                cover_image = book.get('Cover_Image')
+                year_of_publication = book.get('Year_of_Publication')
+                number_of_pages = book.get('Number_of_Pages')
+                average_customer_rating = book.get('Average_Customer_Rating')
+                number_of_ratings = book.get('Number_of_Ratings')
+
+                success, message = add_book(
+                    isbn10=isbn10,
+                    isbn13=isbn13,
+                    title=title,
+                    author=author,
+                    genres=genres,
+                    cover_image=cover_image,
+                    critics_rating=None,
+                    year_of_publication=year_of_publication,
+                    number_of_pages=number_of_pages,
+                    average_customer_rating=average_customer_rating,
+                    number_of_ratings=number_of_ratings
+                )
+
+                if not success:
+                    return jsonify({'error': f'Error saving book {isbn13}: {message}'}), 500
+
+            return jsonify({'message': 'Books successfully fetched and saved'}), 200
+        else:
+            return jsonify({'error': 'Failed to fetch data from external API'}), 500
+    except requests.RequestException as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8007, debug=True)
