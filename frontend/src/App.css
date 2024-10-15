@@ -70,6 +70,25 @@ h1 {
   box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
 }
 
+.update-button {
+  background-color: #28a745;
+  margin-top: 10px;
+}
+
+.update-button:hover {
+  background-color: #218838;
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+}
+
+.update-message {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
 table {
   width: 100%;
   border-collapse: separate;
@@ -159,7 +178,7 @@ img:hover {
     width: 200px;
   }
 
-  .pagination button {
+  .search-button, .clear-button, .update-button {
     padding: 8px 15px;
     font-size: 14px;
   }

@@ -10,6 +10,7 @@ function App() {
   const [totalPages, setTotalPages] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentSearchQuery, setCurrentSearchQuery] = useState('');
+  const [updateMessage, setUpdateMessage] = useState('');
 
   useEffect(() => {
     fetchBooks(currentPage, currentSearchQuery);
@@ -52,6 +53,21 @@ function App() {
     setCurrentPage(1);
   };
 
+  const handleUpdateDatabase = () => {
+    setLoading(true);
+    setUpdateMessage('');
+    axios.get('http://localhost:8007/api/fetch_books')
+      .then(response => {
+        setUpdateMessage(response.data.message);
+        fetchBooks(currentPage, currentSearchQuery);
+      })
+      .catch(error => {
+        console.error("There was an error updating the database!", error);
+        setUpdateMessage("Nepodařilo se aktualizovat databázi. Prosím, zkuste to znovu později.");
+        setLoading(false);
+      });
+  };
+
   if (loading) return <div className="loading">Načítání...</div>;
   if (error) return <div className="error">{error}</div>;
 
@@ -76,6 +92,10 @@ function App() {
             )}
           </form>
         </div>
+        <button onClick={handleUpdateDatabase} className="update-button">
+          Aktualizovat seznam
+        </button>
+        {updateMessage && <div className="update-message">{updateMessage}</div>}
       </div>
       {books.length > 0 ? (
         <>
