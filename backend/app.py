@@ -5,9 +5,7 @@ from flask_cors import CORS
 import os
 from flask_sqlalchemy import SQLAlchemy
 from database.models import db, Book
-from database.database_operations import get_all_books, search_books
-import requests
-
+from database.database_operations import get_all_books, search_books, load_mock_data_to_db
 
 # Vytvoření a konfigurace aplikace
 app = Flask(__name__)
@@ -19,6 +17,8 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    # Load mock data into the database
+    load_mock_data_to_db()
 
 # Zajištění existence adresáře pro logy
 log_dir = os.path.join(os.path.dirname(__file__), 'logs')
@@ -63,17 +63,17 @@ def get_books():
         return jsonify({'error': 'Nepodařilo se získat knihy'}), 500
 
     books_data = [{
-        'ISBN10': book['ISBN10'],
-        'ISBN13': book['ISBN13'],
-        'Title': book['Title'],
-        'Author': book['Author'],
-        'Genres': book['Genres'],
-        'Cover_Image': book['Cover_Image'],
-        'Description': book['Description'],
-        'Year_of_Publication': book['Year_of_Publication'],
-        'Number_of_Pages': book['Number_of_Pages'],
-        'Average_Customer_Rating': book['Average_Customer_Rating'],
-        'Number_of_Ratings': book['Number_of_Ratings'],
+        'ISBN10': book.ISBN10,
+        'ISBN13': book.ISBN13,
+        'Title': book.Title,
+        'Author': book.Author,
+        'Genres': book.Genres,
+        'Cover_Image': book.Cover_Image,
+        'Description': book.Description,
+        'Year_of_Publication': book.Year_of_Publication,
+        'Number_of_Pages': book.Number_of_Pages,
+        'Average_Customer_Rating': book.Average_Customer_Rating,
+        'Number_of_Ratings': book.Number_of_Ratings,
     } for book in books]
 
     return jsonify({

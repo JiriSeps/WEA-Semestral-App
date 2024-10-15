@@ -9,10 +9,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentSearchQuery, setCurrentSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchBooks(currentPage, searchQuery);
-  }, [currentPage, searchQuery]);
+    fetchBooks(currentPage, currentSearchQuery);
+  }, [currentPage, currentSearchQuery]);
 
   const fetchBooks = (page, query) => {
     setLoading(true);
@@ -30,72 +31,101 @@ function App() {
   };
 
   const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
-    setCurrentPage(1); // Reset to first page on new search
   };
 
-  if (loading) return <div>Načítání...</div>;
-  if (error) return <div>{error}</div>;
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    setCurrentSearchQuery(searchQuery);
+    setCurrentPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setCurrentSearchQuery('');
+    setCurrentPage(1);
+  };
+
+  if (loading) return <div className="loading">Načítání...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="App">
       <div className="header">
         <h1>Seznam knih</h1>
         <div className="search-container">
-          <input
-            type="text"
-            placeholder="Vyhledat knihy nebo autory..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="search-input"
-          />
+          <form onSubmit={handleSearchSubmit}>
+            <input
+              type="text"
+              placeholder="Vyhledat knihy nebo autory..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="search-input"
+            />
+            <button type="submit" className="search-button">Hledat</button>
+            {currentSearchQuery && (
+              <button type="button" onClick={handleClearSearch} className="clear-button">
+                Zrušit vyhledávání
+              </button>
+            )}
+          </form>
         </div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Obrázek</th>
-            <th>Název</th>
-            <th>Autor</th>
-            <th>ISBN10</th>
-            <th>ISBN13</th>
-            <th>Žánry</th>
-            <th>Rok vydání</th>
-            <th>Počet stran</th>
-            <th>Průměrné hodnocení</th>
-            <th>Počet hodnocení</th>
-          </tr>
-        </thead>
-        <tbody>
-          {books.map(book => (
-            <tr key={book.ISBN10}>
-              <td><img src={book.Cover_Image} alt={book.Title} style={{ width: '50px', height: '75px' }} /></td>
-              <td>{book.Title}</td>
-              <td>{book.Author}</td>
-              <td>{book.ISBN10}</td>
-              <td>{book.ISBN13}</td>
-              <td>{book.Genres}</td>
-              <td>{book.Year_of_Publication}</td>
-              <td>{book.Number_of_Pages}</td>
-              <td>{book.Average_Customer_Rating}</td>
-              <td>{book.Number_of_Ratings}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="pagination">
-        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-          Předchozí
-        </button>
-        <span>Stránka {currentPage} z {totalPages}</span>
-        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-          Další
-        </button>
-      </div>
+      {books.length > 0 ? (
+        <>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Obrázek</th>
+                  <th>Název</th>
+                  <th>Autor</th>
+                  <th>ISBN10</th>
+                  <th>ISBN13</th>
+                  <th>Žánry</th>
+                  <th>Rok vydání</th>
+                  <th>Počet stran</th>
+                  <th>Průměrné hodnocení</th>
+                  <th>Počet hodnocení</th>
+                </tr>
+              </thead>
+              <tbody>
+                {books.map(book => (
+                  <tr key={book.ISBN10}>
+                    <td><img src={book.Cover_Image} alt={book.Title} /></td>
+                    <td>{book.Title}</td>
+                    <td>{book.Author}</td>
+                    <td>{book.ISBN10}</td>
+                    <td>{book.ISBN13}</td>
+                    <td>{book.Genres}</td>
+                    <td>{book.Year_of_Publication}</td>
+                    <td>{book.Number_of_Pages}</td>
+                    <td>{book.Average_Customer_Rating}</td>
+                    <td>{book.Number_of_Ratings}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="pagination">
+            <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+              Předchozí
+            </button>
+            <span>Stránka {currentPage} z {totalPages}</span>
+            <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+              Další
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="no-results">Žádné knihy nenalezeny.</div>
+      )}
     </div>
   );
 }

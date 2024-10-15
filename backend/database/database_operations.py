@@ -4,46 +4,47 @@ from database.models import db, Book
 from sqlalchemy.exc import SQLAlchemyError
 
 # Funkce pro načtení mockovaných dat z CSV souboru
-def load_mock_data():
+def load_mock_data_to_db():
     mock_data_file = os.path.join(os.path.dirname(__file__), '..', 'data', 'data_mock.csv')
-    
-    books = []
     
     with open(mock_data_file, newline='', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
-        next(reader)  # Skip header row if your CSV has headers
+        next(reader)  # Skip header row
         for row in reader:
-            # Ensure correct indexing based on the CSV structure
-            isbn13 = row[0]  # ISBN13
-            isbn10 = row[1]  # ISBN10
-            title = row[2]  # Title
-            author = row[4]  # Author
-            genres = row[5]  # Genres
-            cover_image = row[6]  # Cover_Image
-            description = row[7]  # Description
-            year_of_publication = int(row[8]) if row[8] else None  # Year_of_Publication
-            number_of_pages = int(row[10]) if row[10] else None  # Number_of_Pages
-            average_customer_rating = float(row[9]) if row[9] else None  # Average_Customer_Rating
-            number_of_ratings = int(row[11]) if row[11] else None  # Average_Customer_Rating
+            isbn13 = row[0]
+            isbn10 = row[1]
+            title = row[2]
+            author = row[4]
+            genres = row[5]
+            cover_image = row[6]
+            description = row[7]
+            year_of_publication = int(row[8]) if row[8] else None
+            average_customer_rating = float(row[9]) if row[9] else None
+            number_of_pages = int(row[10]) if row[10] else None
+            number_of_ratings = int(row[11]) if row[11] else None
             
-
-            book = {
-                'ISBN10': isbn10,
-                'ISBN13': isbn13,
-                'Title': title,
-                'Author': author,
-                'Genres': genres,
-                'Cover_Image': cover_image,
-                'Description': description,
-                'Year_of_Publication': year_of_publication,
-                'Number_of_Pages': number_of_pages,
-                'Average_Customer_Rating': average_customer_rating,
-                'Number_of_Ratings': number_of_ratings,
-            }
+            book = Book(
+                ISBN10=isbn10,
+                ISBN13=isbn13,
+                Title=title,
+                Author=author,
+                Genres=genres,
+                Cover_Image=cover_image,
+                Description=description,
+                Year_of_Publication=year_of_publication,
+                Number_of_Pages=number_of_pages,
+                Average_Customer_Rating=average_customer_rating,
+                Number_of_Ratings=number_of_ratings
+            )
             
-            books.append(book)
+            db.session.add(book)
     
-    return books
+    try:
+        db.session.commit()
+        print("Mock data loaded successfully")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(f"Error loading mock data: {str(e)}")
 
 
 # Funkce pro přidání knihy do databáze
@@ -109,42 +110,23 @@ def delete_book(isbn10):
 
 # Funkce pro získání všech knih (z reálné databáze nebo mock dat)
 def get_all_books(page=1, per_page=25):
-    if os.getenv('FLASK_ENV') == 'development':
-        # Načtení mock dat
-        all_books = load_mock_data()
-        # Implementace stránkování pro mock data
-        start = (page - 1) * per_page
-        end = start + per_page
-        return all_books[start:end], len(all_books)
-    else:
-        try:
-            books = Book.query.paginate(page=page, per_page=per_page, error_out=False)
-            return books.items, books.total
-        except SQLAlchemyError as e:
-            return None, 0
+    try:
+        books = Book.query.paginate(page=page, per_page=per_page, error_out=False)
+        return books.items, books.total
+    except SQLAlchemyError as e:
+        print(f"Error getting all books: {str(e)}")
+        return None, 0
 
 # Funkce pro vyhledávání knih
 def search_books(query, page=1, per_page=25):
-    if os.getenv('FLASK_ENV') == 'development':
-        # Načtení mock dat
-        all_books = load_mock_data()
-        # Implementace vyhledávání a stránkování pro mock data
-        filtered_books = [book for book in all_books if 
-                          query.lower() in book['Title'].lower() or 
-                          query.lower() in book['Author'].lower() or 
-                          query in book['ISBN10'] or 
-                          query in book['ISBN13']]
-        start = (page - 1) * per_page
-        end = start + per_page
-        return filtered_books[start:end], len(filtered_books)
-    else:
-        try:
-            books = Book.query.filter(
-                (Book.Title.ilike(f'%{query}%')) |
-                (Book.Author.ilike(f'%{query}%')) |
-                (Book.ISBN10.ilike(f'%{query}%')) |
-                (Book.ISBN13.ilike(f'%{query}%'))
-            ).paginate(page=page, per_page=per_page, error_out=False)
-            return books.items, books.total
-        except SQLAlchemyError as e:
-            return None, 0
+    try:
+        books = Book.query.filter(
+            (Book.Title.ilike(f'%{query}%')) |
+            (Book.Author.ilike(f'%{query}%')) |
+            (Book.ISBN10.ilike(f'%{query}%')) |
+            (Book.ISBN13.ilike(f'%{query}%'))
+        ).paginate(page=page, per_page=per_page, error_out=False)
+        return books.items, books.total
+    except SQLAlchemyError as e:
+        print(f"Error searching books: {str(e)}")
+        return None, 0
