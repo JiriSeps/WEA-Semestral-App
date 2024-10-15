@@ -108,16 +108,20 @@ def delete_book(isbn10):
         return False, str(e)
 
 # Funkce pro získání všech knih (z reálné databáze nebo mock dat)
-def get_all_books():
+def get_all_books(page=1, per_page=25):
     if os.getenv('FLASK_ENV') == 'development':
-        # Pokud je prostředí ve vývojovém režimu, načti mock data
-        return load_mock_data()
+        # Načtení mock dat
+        all_books = load_mock_data()
+        # Implementace stránkování pro mock data
+        start = (page - 1) * per_page
+        end = start + per_page
+        return all_books[start:end], len(all_books)
     else:
         try:
-            books = Book.query.all()
-            return books
+            books = Book.query.paginate(page=page, per_page=per_page, error_out=False)
+            return books.items, books.total
         except SQLAlchemyError as e:
-            return None
+            return None, 0
 
 # Funkce pro vyhledávání knih
 def search_books(query):

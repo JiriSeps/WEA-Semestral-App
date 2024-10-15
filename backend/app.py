@@ -1,11 +1,12 @@
 import logging
 from logging.handlers import RotatingFileHandler
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 from flask_sqlalchemy import SQLAlchemy
 from database.models import db, Book
 from database.database_operations import get_all_books
+import requests
 
 
 # Vytvoření a konfigurace aplikace
@@ -48,12 +49,15 @@ def hello_world():
 
 @app.route('/api/books')
 def get_books():
-    books = get_all_books()  # Uses mock data in development mode
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    
+    books, total_books = get_all_books(page, per_page)
+    
     if books is None:
         error_logger.error('Chyba při získávání knih z databáze')
         return jsonify({'error': 'Nepodařilo se získat knihy'}), 500
 
-    # Create the books_data list correctly using dictionary keys
     books_data = [{
         'ISBN10': book['ISBN10'],
         'ISBN13': book['ISBN13'],
@@ -68,7 +72,13 @@ def get_books():
         'Number_of_Ratings': book['Number_of_Ratings'],
     } for book in books]
 
-    return jsonify(books_data)
+    return jsonify({
+        'books': books_data,
+        'total_books': total_books,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total_books + per_page - 1) // per_page
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8007, debug=True)

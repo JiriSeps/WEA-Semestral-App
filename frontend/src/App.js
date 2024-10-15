@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import './App.css'; // Ujisti se, že máš CSS soubor importován
+import './App.css';
 
 function App() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    axios.get('http://localhost:8007/api/books')
+    fetchBooks(currentPage);
+  }, [currentPage]);
+
+  const fetchBooks = (page) => {
+    setLoading(true);
+    axios.get(`http://localhost:8007/api/books?page=${page}&per_page=25`)
       .then(response => {
-        setBooks(response.data);
+        setBooks(response.data.books);
+        setTotalPages(response.data.total_pages);
         setLoading(false);
       })
       .catch(error => {
@@ -18,7 +26,11 @@ function App() {
         setError("Nepodařilo se načíst knihy. Prosím, zkuste to znovu později.");
         setLoading(false);
       });
-  }, []);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
 
   if (loading) return <div>Načítání...</div>;
   if (error) return <div>{error}</div>;
@@ -58,6 +70,15 @@ function App() {
           ))}
         </tbody>
       </table>
+      <div className="pagination">
+        <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+          Předchozí
+        </button>
+        <span>Stránka {currentPage} z {totalPages}</span>
+        <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+          Další
+        </button>
+      </div>
     </div>
   );
 }
