@@ -8,14 +8,15 @@ function App() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchBooks(currentPage);
-  }, [currentPage]);
+    fetchBooks(currentPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
-  const fetchBooks = (page) => {
+  const fetchBooks = (page, query) => {
     setLoading(true);
-    axios.get(`http://localhost:8007/api/books?page=${page}&per_page=25`)
+    axios.get(`http://localhost:8007/api/books?page=${page}&per_page=25&search=${query}`)
       .then(response => {
         setBooks(response.data.books);
         setTotalPages(response.data.total_pages);
@@ -32,12 +33,28 @@ function App() {
     setCurrentPage(newPage);
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    setCurrentPage(1); // Reset to first page on new search
+  };
+
   if (loading) return <div>Načítání...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div className="App">
-      <h1>Seznam knih</h1>
+      <div className="header">
+        <h1>Seznam knih</h1>
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Vyhledat knihy nebo autory..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="search-input"
+          />
+        </div>
+      </div>
       <table>
         <thead>
           <tr>

@@ -5,7 +5,7 @@ from flask_cors import CORS
 import os
 from flask_sqlalchemy import SQLAlchemy
 from database.models import db, Book
-from database.database_operations import get_all_books
+from database.database_operations import get_all_books, search_books
 import requests
 
 
@@ -51,8 +51,12 @@ def hello_world():
 def get_books():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
+    search_query = request.args.get('search', '')
     
-    books, total_books = get_all_books(page, per_page)
+    if search_query:
+        books, total_books = search_books(search_query, page, per_page)
+    else:
+        books, total_books = get_all_books(page, per_page)
     
     if books is None:
         error_logger.error('Chyba při získávání knih z databáze')
