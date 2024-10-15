@@ -44,8 +44,7 @@ error_logger.addHandler(error_handler)
 
 @app.route('/')
 def hello_world():
-    info_logger.info('Zpráva pro logování: Hello, World!')
-    error_logger.error('Testovací chybová zpráva')
+    info_logger.info('Přístup na hlavní stránku')
     return 'Hello, World!'
 
 @app.route('/api/books')
@@ -54,10 +53,14 @@ def get_books():
     per_page = request.args.get('per_page', 25, type=int)
     search_query = request.args.get('search', '')
     
+    info_logger.info(f'Požadavek na získání knih - Stránka: {page}, Počet na stránku: {per_page}, Vyhledávací dotaz: "{search_query}"')
+    
     if search_query:
         books, total_books = search_books(search_query, page, per_page)
+        info_logger.info(f'Vyhledávání knih - Nalezeno {total_books} výsledků pro dotaz: "{search_query}"')
     else:
         books, total_books = get_all_books(page, per_page)
+        info_logger.info(f'Získání všech knih - Celkem {total_books} knih')
     
     if books is None:
         error_logger.error('Chyba při získávání knih z databáze')
@@ -77,6 +80,8 @@ def get_books():
         'Number_of_Ratings': book.Number_of_Ratings,
     } for book in books]
 
+    info_logger.info(f'Úspěšně vráceno {len(books_data)} knih')
+
     return jsonify({
         'books': books_data,
         'total_books': total_books,
@@ -85,47 +90,60 @@ def get_books():
         'total_pages': (total_books + per_page - 1) // per_page
     })
 
-    # Endpoint pro získání dat z externí REST API služby a uložení do databáze
 @app.route('/api/fetch_books', methods=['GET'])
 def fetch_books():
+    info_logger.info('Zahájeno načítání knih z externí API')
     try:
         response = requests.get('http://wea.nti.tul.cz:1337/api/books')
         if response.status_code == 200:
             books_data = response.json()
+            info_logger.info(f'Úspěšně načteno {len(books_data)} knih z externí API')
 
+            saved_books = 0
             for book in books_data:
-                isbn10 = book.get('ISBN10')
-                isbn13 = book.get('ISBN13')
-                title = book.get('Title')
-                author = book.get('Author')
-                genres = book.get('Genres')
-                cover_image = book.get('Cover_Image')
-                year_of_publication = book.get('Year_of_Publication')
-                number_of_pages = book.get('Number_of_Pages')
-                average_customer_rating = book.get('Average_Customer_Rating')
-                number_of_ratings = book.get('Number_of_Ratings')
+                isbn13 = book.get('isbn13')
+                isbn10 = book.get('isbn10')
+                title = book.get('title')
+                authors = book.get('authors')
+                categories = book.get('categories')
+                thumbnail = book.get('thumbnail')
+                description = book.get('description')
+                published_year = book.get('published_year')
+                num_pages = book.get('num_pages')
+                average_rating = book.get('average_rating')
+                ratings_count = book.get('ratings_count')
+
+                # Převedení autorů na string, pokud je to list
+                if isinstance(authors, list):
+                    authors = '; '.join(authors)
 
                 success, message = add_book(
                     isbn10=isbn10,
                     isbn13=isbn13,
                     title=title,
-                    author=author,
-                    genres=genres,
-                    cover_image=cover_image,
-                    critics_rating=None,
-                    year_of_publication=year_of_publication,
-                    number_of_pages=number_of_pages,
-                    average_customer_rating=average_customer_rating,
-                    number_of_ratings=number_of_ratings
+                    author=authors,
+                    genres=categories,
+                    cover_image=thumbnail,
+                    description=description,
+                    year_of_publication=published_year,
+                    number_of_pages=num_pages,
+                    average_customer_rating=average_rating,
+                    number_of_ratings=ratings_count
                 )
 
-                if not success:
-                    return jsonify({'error': f'Error saving book {isbn13}: {message}'}), 500
+                if success:
+                    saved_books += 1
+                    info_logger.info(f'Kniha úspěšně uložena: {title} (ISBN13: {isbn13})')
+                else:
+                    error_logger.error(f'Chyba při ukládání knihy {isbn13}: {message}')
 
-            return jsonify({'message': 'Books successfully fetched and saved'}), 200
+            info_logger.info(f'Celkem uloženo {saved_books} knih z {len(books_data)} načtených')
+            return jsonify({'message': f'Úspěšně načteno a uloženo {saved_books} knih'}), 200
         else:
-            return jsonify({'error': 'Failed to fetch data from external API'}), 500
+            error_logger.error(f'Chyba při načítání dat z externí API. Stavový kód: {response.status_code}')
+            return jsonify({'error': 'Nepodařilo se načíst data z externí API'}), 500
     except requests.RequestException as e:
+        error_logger.error(f'Výjimka při načítání knih z externí API: {str(e)}')
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
