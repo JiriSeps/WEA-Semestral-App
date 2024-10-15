@@ -22,6 +22,7 @@ def load_mock_data_to_db():
             average_customer_rating = float(row[9]) if row[9] else None
             number_of_pages = int(row[10]) if row[10] else None
             number_of_ratings = int(row[11]) if row[11] else None
+
             
             book = Book(
                 ISBN10=isbn10,
