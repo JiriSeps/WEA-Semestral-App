@@ -51,13 +51,22 @@ def hello_world():
 def get_books():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
-    search_query = request.args.get('search', '')
+    title_query = request.args.get('title', '')
+    author_query = request.args.get('author', '')
+    isbn_query = request.args.get('isbn', '')
     
-    info_logger.info(f'Požadavek na získání knih - Stránka: {page}, Počet na stránku: {per_page}, Vyhledávací dotaz: "{search_query}"')
+    info_logger.info(f'Požadavek na získání knih - Stránka: {page}, Počet na stránku: {per_page}')
+    info_logger.info(f'Vyhledávací parametry - Název: "{title_query}", Autor: "{author_query}", ISBN: "{isbn_query}"')
     
-    if search_query:
-        books, total_books = search_books(search_query, page, per_page)
-        info_logger.info(f'Vyhledávání knih - Nalezeno {total_books} výsledků pro dotaz: "{search_query}"')
+    if title_query or author_query or isbn_query:
+        books, total_books = search_books(
+            title=title_query,
+            authors=author_query,
+            isbn=isbn_query,
+            page=page,
+            per_page=per_page
+        )
+        info_logger.info(f'Vyhledávání knih - Nalezeno {total_books} výsledků')
     else:
         books, total_books = get_all_books(page, per_page)
         info_logger.info(f'Získání všech knih - Celkem {total_books} knih')
@@ -79,8 +88,6 @@ def get_books():
         'Average_Customer_Rating': book.Average_Customer_Rating,
         'Number_of_Ratings': book.Number_of_Ratings,
     } for book in books]
-
-    info_logger.info(f'Úspěšně vráceno {len(books_data)} knih')
 
     return jsonify({
         'books': books_data,

@@ -8,17 +8,32 @@ function App() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentSearchQuery, setCurrentSearchQuery] = useState('');
-  const [updateMessage, setUpdateMessage] = useState('');
+  const [searchQueries, setSearchQueries] = useState({
+    title: '',
+    author: '',
+    isbn: ''
+  });
+  const [currentSearchQueries, setCurrentSearchQueries] = useState({
+    title: '',
+    author: '',
+    isbn: ''
+  });
 
   useEffect(() => {
-    fetchBooks(currentPage, currentSearchQuery);
-  }, [currentPage, currentSearchQuery]);
+    fetchBooks(currentPage, currentSearchQueries);
+  }, [currentPage, currentSearchQueries]);
 
-  const fetchBooks = (page, query) => {
+  const fetchBooks = (page, queries) => {
     setLoading(true);
-    axios.get(`http://localhost:8007/api/books?page=${page}&per_page=25&search=${query}`)
+    const queryParams = new URLSearchParams({
+      page: page,
+      per_page: 25,
+      title: queries.title,
+      author: queries.author,
+      isbn: queries.isbn
+    });
+
+    axios.get(`http://localhost:8007/api/books?${queryParams.toString()}`)
       .then(response => {
         setBooks(response.data.books);
         setTotalPages(response.data.total_pages);
@@ -37,39 +52,44 @@ function App() {
     }
   };
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+  const handleSearchChange = (field) => (event) => {
+    setSearchQueries(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
   };
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
-    setCurrentSearchQuery(searchQuery);
+    setCurrentSearchQueries(searchQueries);
     setCurrentPage(1);
   };
 
   const handleClearSearch = () => {
-    setSearchQuery('');
-    setCurrentSearchQuery('');
+    setSearchQueries({
+      title: '',
+      author: '',
+      isbn: ''
+    });
+    setCurrentSearchQueries({
+      title: '',
+      author: '',
+      isbn: ''
+    });
     setCurrentPage(1);
   };
 
-  const handleUpdateDatabase = () => {
-    setLoading(true);
-    setUpdateMessage('');
-    axios.get('http://localhost:8007/api/fetch_books')
-      .then(response => {
-        setUpdateMessage(response.data.message);
-        fetchBooks(currentPage, currentSearchQuery);
-      })
-      .catch(error => {
-        console.error("There was an error updating the database!", error);
-        setUpdateMessage("Nepodařilo se aktualizovat databázi. Prosím, zkuste to znovu později.");
-        setLoading(false);
-      });
-  };
-
-  if (loading) return <div className="loading">Načítání...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) return (
+    <div className="loading-container">
+      <div className="loading">Načítání...</div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="error-container">
+      <div className="error">{error}</div>
+    </div>
+  );
 
   return (
     <div className="App">
@@ -77,26 +97,50 @@ function App() {
         <h1>Seznam knih</h1>
         <div className="search-container">
           <form onSubmit={handleSearchSubmit}>
-            <input
-              type="text"
-              placeholder="Vyhledat knihy nebo autory..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="search-input"
-            />
-            <button type="submit" className="search-button">Hledat</button>
-            {currentSearchQuery && (
-              <button type="button" onClick={handleClearSearch} className="clear-button">
-                Zrušit vyhledávání
-              </button>
-            )}
+            <div className="search-fields">
+              <div className="search-field">
+                <label>Název knihy:</label>
+                <input
+                  type="text"
+                  placeholder="Zadejte název knihy..."
+                  value={searchQueries.title}
+                  onChange={handleSearchChange('title')}
+                  className="search-input"
+                />
+              </div>
+              <div className="search-field">
+                <label>Autor (autoři oddělení čárkou):</label>
+                <input
+                  type="text"
+                  placeholder="Zadejte autora/autory..."
+                  value={searchQueries.author}
+                  onChange={handleSearchChange('author')}
+                  className="search-input"
+                />
+              </div>
+              <div className="search-field">
+                <label>ISBN:</label>
+                <input
+                  type="text"
+                  placeholder="Zadejte ISBN10 nebo ISBN13..."
+                  value={searchQueries.isbn}
+                  onChange={handleSearchChange('isbn')}
+                  className="search-input"
+                />
+              </div>
+            </div>
+            <div className="search-buttons">
+              <button type="submit" className="search-button">Hledat</button>
+              {(currentSearchQueries.title || currentSearchQueries.author || currentSearchQueries.isbn) && (
+                <button type="button" onClick={handleClearSearch} className="clear-button">
+                  Zrušit vyhledávání
+                </button>
+              )}
+            </div>
           </form>
         </div>
-        <button onClick={handleUpdateDatabase} className="update-button">
-          Aktualizovat seznam
-        </button>
-        {updateMessage && <div className="update-message">{updateMessage}</div>}
       </div>
+
       {books.length > 0 ? (
         <>
           <div className="table-container">
@@ -117,8 +161,20 @@ function App() {
               </thead>
               <tbody>
                 {books.map(book => (
-                  <tr key={book.ISBN10}>
-                    <td><img src={book.Cover_Image} alt={book.Title} /></td>
+                  <tr key={book.ISBN10 || book.ISBN13}>
+                    <td>
+                      {book.Cover_Image && (
+                        <img 
+                          src={book.Cover_Image} 
+                          alt={book.Title} 
+                          className="book-cover"
+                          onError={(e) => {
+                            e.target.src = '/placeholder-book.png';
+                            e.target.onerror = null;
+                          }}
+                        />
+                      )}
+                    </td>
                     <td>{book.Title}</td>
                     <td>{book.Author}</td>
                     <td>{book.ISBN10}</td>
@@ -126,7 +182,7 @@ function App() {
                     <td>{book.Genres}</td>
                     <td>{book.Year_of_Publication}</td>
                     <td>{book.Number_of_Pages}</td>
-                    <td>{book.Average_Customer_Rating}</td>
+                    <td>{book.Average_Customer_Rating?.toFixed(1)}</td>
                     <td>{book.Number_of_Ratings}</td>
                   </tr>
                 ))}
@@ -134,11 +190,19 @@ function App() {
             </table>
           </div>
           <div className="pagination">
-            <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+            <button 
+              onClick={() => handlePageChange(currentPage - 1)} 
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
               Předchozí
             </button>
-            <span>Stránka {currentPage} z {totalPages}</span>
-            <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+            <span className="page-info">Stránka {currentPage} z {totalPages}</span>
+            <button 
+              onClick={() => handlePageChange(currentPage + 1)} 
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
               Další
             </button>
           </div>

@@ -119,15 +119,33 @@ def get_all_books(page=1, per_page=25):
         return None, 0
 
 # Funkce pro vyhledávání knih
-def search_books(query, page=1, per_page=25):
+def search_books(title=None, authors=None, isbn=None, page=1, per_page=25):
     try:
-        books = Book.query.filter(
-            (Book.Title.ilike(f'%{query}%')) |
-            (Book.Author.ilike(f'%{query}%')) |
-            (Book.ISBN10.ilike(f'%{query}%')) |
-            (Book.ISBN13.ilike(f'%{query}%'))
-        ).paginate(page=page, per_page=per_page, error_out=False)
-        return books.items, books.total
+        query = Book.query
+
+        if title:
+            query = query.filter(Book.Title.ilike(f'%{title}%'))
+        
+        if authors:
+            # Split authors by comma and search for each
+            author_terms = [author.strip() for author in authors.split(',')]
+            author_filters = []
+            for author in author_terms:
+                author_filters.append(Book.Author.ilike(f'%{author}%'))
+            if author_filters:
+                query = query.filter(db.or_(*author_filters))
+        
+        if isbn:
+            query = query.filter(
+                db.or_(
+                    Book.ISBN10.ilike(f'%{isbn}%'),
+                    Book.ISBN13.ilike(f'%{isbn}%')
+                )
+            )
+
+        # Execute query with pagination
+        paginated_books = query.paginate(page=page, per_page=per_page, error_out=False)
+        return paginated_books.items, paginated_books.total
     except SQLAlchemyError as e:
         print(f"Error searching books: {str(e)}")
         return None, 0
