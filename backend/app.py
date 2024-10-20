@@ -1,8 +1,12 @@
+"""
+Aplikace pro správu knih a interakci s externím API pro získání informací o knihách.
+"""
+
+import os
 import logging
 from logging.handlers import RotatingFileHandler
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
-import os
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 
@@ -43,10 +47,33 @@ error_logger.addHandler(error_handler)
 
 # Funkce pro práci s databází
 def get_all_books(page, per_page):
+    """
+    Získá všechny knihy z databáze s paginací.
+
+    Args:
+        page (int): Číslo stránky.
+        per_page (int): Počet knih na stránku.
+
+    Returns:
+        tuple: Seznam knih a celkový počet knih.
+    """
     books = Book.query.paginate(page=page, per_page=per_page, error_out=False)
     return books.items, books.total
 
 def search_books(title, authors, isbn, page, per_page):
+    """
+    Hledá knihy na základě zadaných parametrů.
+
+    Args:
+        title (str): Název knihy.
+        authors (str): Autor knihy.
+        isbn (str): ISBN knihy.
+        page (int): Číslo stránky.
+        per_page (int): Počet knih na stránku.
+
+    Returns:
+        tuple: Seznam knih a celkový počet knih.
+    """
     query = Book.query
     if title:
         query = query.filter(Book.Title.ilike(f'%{title}%'))
@@ -58,6 +85,25 @@ def search_books(title, authors, isbn, page, per_page):
     return books.items, books.total
 
 def add_book(isbn10, isbn13, title, author, genres, cover_image, description, year_of_publication, number_of_pages, average_customer_rating, number_of_ratings):
+    """
+    Přidá novou knihu do databáze.
+
+    Args:
+        isbn10 (str): ISBN10 knihy.
+        isbn13 (str): ISBN13 knihy.
+        title (str): Název knihy.
+        author (str): Autor knihy.
+        genres (str): Žánry knihy.
+        cover_image (str): URL obálky knihy.
+        description (str): Popis knihy.
+        year_of_publication (int): Rok publikace.
+        number_of_pages (int): Počet stránek.
+        average_customer_rating (float): Průměrné hodnocení zákazníků.
+        number_of_ratings (int): Počet hodnocení.
+
+    Returns:
+        tuple: Stav a zpráva o výsledku operace.
+    """
     try:
         new_book = Book(
             ISBN10=isbn10,
@@ -80,6 +126,17 @@ def add_book(isbn10, isbn13, title, author, genres, cover_image, description, ye
         return False, str(e)
 
 def create_user(username, password, name):
+    """
+    Vytvoří nového uživatele.
+
+    Args:
+        username (str): Uživatelské jméno.
+        password (str): Heslo.
+        name (str): Jméno uživatele.
+
+    Returns:
+        User: Vytvořený uživatel nebo None při chybě.
+    """
     hashed_password = generate_password_hash(password)
     new_user = User(username=username, password=hashed_password, name=name)
     db.session.add(new_user)
@@ -88,10 +145,20 @@ def create_user(username, password, name):
         return new_user
     except Exception as e:
         db.session.rollback()
-        error_logger.error(f"Error creating user: {str(e)}")
+        error_logger.error('Chyba při vytváření uživatele: %s', str(e))
         return None
 
 def authenticate_user(username, password):
+    """
+    Ověří uživatelské jméno a heslo.
+
+    Args:
+        username (str): Uživatelské jméno.
+        password (str): Heslo.
+
+    Returns:
+        User: Ověřený uživatel nebo None.
+    """
     user = User.query.filter_by(username=username).first()
     if user and check_password_hash(user.password, password):
         return user
@@ -100,20 +167,39 @@ def authenticate_user(username, password):
 # Endpointy
 @app.route('/')
 def hello_world():
+    """
+    Vrací základní uvítací zprávu.
+
+    Returns:
+        str: Textová zpráva "Hello, World!".
+    """
     info_logger.info('Přístup na hlavní stránku')
     return 'Hello, World!'
 
 @app.route('/api/books')
 def get_books():
+    """
+    Získá seznam knih, buď všechny knihy nebo vyhledá specifické podle parametrů.
+    
+    Query Parameters:
+        title (str): Název knihy (volitelné).
+        author (str): Autor knihy (volitelné).
+        isbn (str): ISBN knihy (volitelné).
+        page (int): Číslo stránky (výchozí: 1).
+        per_page (int): Počet knih na stránku (výchozí: 25).
+
+    Returns:
+        dict: JSON objekt obsahující seznam knih a další metadata stránkování.
+    """
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     title_query = request.args.get('title', '')
     author_query = request.args.get('author', '')
     isbn_query = request.args.get('isbn', '')
-    
-    info_logger.info(f'Požadavek na získání knih - Stránka: {page}, Počet na stránku: {per_page}')
-    info_logger.info(f'Vyhledávací parametry - Název: "{title_query}", Autor: "{author_query}", ISBN: "{isbn_query}"')
-    
+
+    info_logger.info('Požadavek na získání knih - Stránka: %d, Počet na stránku: %d', page, per_page)
+    info_logger.info('Vyhledávací parametry - Název: "%s", Autor: "%s", ISBN: "%s"', title_query, author_query, isbn_query)
+
     if title_query or author_query or isbn_query:
         books, total_books = search_books(
             title=title_query,
@@ -122,11 +208,11 @@ def get_books():
             page=page,
             per_page=per_page
         )
-        info_logger.info(f'Vyhledávání knih - Nalezeno {total_books} výsledků')
+        info_logger.info('Vyhledávání knih - Nalezeno %d výsledků', total_books)
     else:
         books, total_books = get_all_books(page, per_page)
-        info_logger.info(f'Získání všech knih - Celkem {total_books} knih')
-    
+        info_logger.info('Získání všech knih - Celkem %d knih', total_books)
+
     if books is None:
         error_logger.error('Chyba při získávání knih z databáze')
         return jsonify({'error': 'Nepodařilo se získat knihy'}), 500
@@ -155,12 +241,31 @@ def get_books():
 
 @app.route('/api/fetch_books', methods=['GET'])
 def fetch_books():
+    """
+    Přidá novou knihu do databáze.
+    
+    JSON Body:
+        isbn10 (str): ISBN10 číslo knihy.
+        isbn13 (str): ISBN13 číslo knihy.
+        title (str): Název knihy.
+        author (str): Autor knihy.
+        genres (str): Žánry knihy (oddělené středníkem).
+        cover_image (str): URL obrázku obálky knihy.
+        description (str): Popis knihy.
+        year_of_publication (int): Rok vydání knihy.
+        number_of_pages (int): Počet stránek knihy.
+        average_customer_rating (float): Průměrné hodnocení knihy zákazníky.
+        number_of_ratings (int): Počet hodnocení zákazníky.
+
+    Returns:
+        dict: JSON objekt s informací o úspěšnosti operace nebo chybová zpráva.
+    """
     info_logger.info('Zahájeno načítání knih z externí API')
     try:
-        response = requests.get('http://wea.nti.tul.cz:1337/api/books')
+        response = requests.get('http://wea.nti.tul.cz:1337/api/books', timeout=10)
         if response.status_code == 200:
             books_data = response.json()
-            info_logger.info(f'Úspěšně načteno {len(books_data)} knih z externí API')
+            info_logger.info('Úspěšně načteno %d knih z externí API', len(books_data))
 
             saved_books = 0
             for book in books_data:
@@ -195,62 +300,93 @@ def fetch_books():
 
                 if success:
                     saved_books += 1
-                    info_logger.info(f'Kniha úspěšně uložena: {title} (ISBN13: {isbn13})')
+                    info_logger.info('Kniha úspěšně uložena: %s (ISBN13: %s)', title, isbn13)
                 else:
-                    error_logger.error(f'Chyba při ukládání knihy {isbn13}: {message}')
+                    error_logger.error('Chyba při ukládání knihy %s: %s', isbn13, message)
 
-            info_logger.info(f'Celkem uloženo {saved_books} knih z {len(books_data)} načtených')
+            info_logger.info('Celkem uloženo %d knih z %d načtených', saved_books, len(books_data))
             return jsonify({'message': f'Úspěšně načteno a uloženo {saved_books} knih'}), 200
-        else:
-            error_logger.error(f'Chyba při načítání dat z externí API. Stavový kód: {response.status_code}')
-            return jsonify({'error': 'Nepodařilo se načíst data z externí API'}), 500
+        error_logger.error('Chyba při načítání dat z externí API. Stavový kód: %d', response.status_code)
+        return jsonify({'error': 'Nepodařilo se načíst data z externí API'}), 500
     except requests.RequestException as e:
-        error_logger.error(f'Výjimka při načítání knih z externí API: {str(e)}')
+        error_logger.error('Výjimka při načítání knih z externí API: %s', str(e))
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/register', methods=['POST'])
 def register():
+    """
+    Zaregistruje nového uživatele.
+
+    JSON Body:
+        username (str): Uživatelské jméno.
+        password (str): Heslo.
+        name (str): Jméno uživatele.
+
+    Returns:
+        dict: JSON objekt s informací o úspěšnosti registrace nebo chybová zpráva.
+    """
     data = request.json
     username = data.get('username')
     password = data.get('password')
     name = data.get('name')
-    
+
     if not username or not password or not name:
         return jsonify({'error': 'Všechna pole jsou povinná'}), 400
-    
+
     user = create_user(username, password, name)
     if user:
-        info_logger.info(f'Nový uživatel zaregistrován: {username}')
+        info_logger.info('Nový uživatel %s byl registrován', username)
         return jsonify({'message': 'Uživatel úspěšně zaregistrován'}), 201
-    else:
-        error_logger.error(f'Chyba při registraci uživatele: {username}')
-        return jsonify({'error': 'Registrace se nezdařila'}), 400
+    error_logger.warning('Registrace uživatele %s selhala', username)
+    return jsonify({'error': 'Registrace se nezdařila'}), 400
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    """
+    Přihlásí uživatele.
+
+    JSON Body:
+        username (str): Uživatelské jméno.
+        password (str): Heslo.
+
+    Returns:
+        dict: JSON objekt s informací o úspěšnosti přihlášení nebo chybová zpráva.
+    """
     data = request.json
     username = data.get('username')
     password = data.get('password')
-    
+
     if not username or not password:
         return jsonify({'error': 'Uživatelské jméno a heslo jsou povinné'}), 400
-    
+
     user = authenticate_user(username, password)
     if user:
         session['user_id'] = user.id
-        info_logger.info(f'Uživatel přihlášen: {username}')
+        info_logger.info('Uživatel %s se přihlásil', username)
         return jsonify({'message': 'Přihlášení úspěšné', 'user': {'id': user.id, 'username': user.username, 'name': user.name}}), 200
-    else:
-        error_logger.error(f'Neúspěšný pokus o přihlášení: {username}')
-        return jsonify({'error': 'Neplatné přihlašovací údaje'}), 401
+    error_logger.warning('Nepodařilo se přihlásit uživatele %s', username)
+    return jsonify({'error': 'Neplatné přihlašovací údaje'}), 401
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
+    """
+    Odhlásí uživatele.
+
+    Returns:
+        dict: JSON objekt s potvrzením o odhlášení.
+    """
     session.pop('user_id', None)
     return jsonify({'message': 'Odhlášení úspěšné'}), 200
 
 @app.route('/api/user', methods=['GET'])
 def get_user():
+    """
+    Získání informací o aktuálně přihlášeném uživateli.
+
+    Returns:
+        Response: JSON odpověď obsahující informace o uživateli, pokud je přihlášen,
+        nebo chybovou zprávu, pokud není přihlášen.
+    """
     user_id = session.get('user_id')
     if user_id:
         user = User.query.get(user_id)
@@ -264,7 +400,7 @@ with app.app_context():
         db.create_all()
         info_logger.info('Databázové tabulky byly úspěšně vytvořeny')
     except Exception as e:
-        error_logger.error(f'Chyba při vytváření databázových tabulek: {str(e)}')
+        error_logger.error('Chyba při vytváření databázových tabulek: %s', str(e))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8007, debug=True)
