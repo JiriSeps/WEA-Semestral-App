@@ -1,8 +1,11 @@
 /* Base styles */
 .App {
   padding: 20px;
-  max-width: 1600px;
-  margin: 0 auto;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  background-color: #ffb81e95;
 }
 
 /* Header styles */
@@ -10,10 +13,20 @@
   margin-bottom: 30px;
 }
 
+.language-toggle {
+  margin-right: 20px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
 h1 {
   text-align: center;
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
+  font-family: 'Merriweather', serif;
+  font-weight: 700;
+  font-size: 50px;
+  color: #333;
 }
 
 /* Search container styles */
@@ -72,7 +85,8 @@ h1 {
 /* Button styles */
 .search-button,
 .clear-button,
-.pagination-button {
+.pagination-button,
+.language-toggle {
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
@@ -81,7 +95,7 @@ h1 {
   transition: background-color 0.3s ease;
 }
 
-.search-button {
+.search-button, .language-toggle {
   background-color: #007bff;
   color: white;
 }
@@ -148,12 +162,12 @@ tr:hover {
 }
 
 .pagination-button {
-  background-color: #6c757d;
+  background-color: #3980b5;
   color: white;
 }
 
 .pagination-button:hover:not(:disabled) {
-  background-color: #5a6268;
+  background-color: #2d5f85;
 }
 
 .pagination-button:disabled {
