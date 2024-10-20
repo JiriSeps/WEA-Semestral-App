@@ -1,16 +1,17 @@
 /* Base styles */
 .App {
   padding: 20px;
-  margin-left: 0;
-  margin-right: 0;
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
   background-color: #ffb81e95;
 }
 
 /* Header styles */
 .header {
   margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .language-toggle {
@@ -26,7 +27,115 @@ h1 {
   font-family: 'Merriweather', serif;
   font-weight: 700;
   font-size: 50px;
-  color: #333;
+}
+
+/* Authentication styles */
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.auth-buttons.logged-in {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.auth-buttons.logged-in:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-message {
+  margin-right: 15px;
+  font-weight: 500;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  position: relative;
+  padding-right: 15px;
+}
+
+.welcome-message::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  height: 20px;
+  width: 1px;
+  background-color: #cbd5e0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.auth-button, .logout-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.auth-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.auth-button:hover {
+  background-color: #218838;
+}
+
+.logout-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
+
+/* Login and Register Form styles */
+.auth-form {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.auth-form input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.auth-form button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.auth-form button:hover {
+  background-color: #0056b3;
+}
+
+.auth-form .error {
+  color: #dc3545;
+  margin-top: 10px;
 }
 
 /* Search container styles */
@@ -83,10 +192,7 @@ h1 {
 }
 
 /* Button styles */
-.search-button,
-.clear-button,
-.pagination-button,
-.language-toggle {
+.search-button, .clear-button, .pagination-button, .language-toggle {
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
@@ -181,17 +287,14 @@ tr:hover {
 }
 
 /* Loading and error states */
-.loading-container,
-.error-container {
+.loading-container, .error-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 200px;
 }
 
-.loading,
-.error,
-.no-results {
+.loading, .error, .no-results {
   padding: 20px;
   text-align: center;
   border-radius: 8px;

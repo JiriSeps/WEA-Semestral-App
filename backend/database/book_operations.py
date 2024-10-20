@@ -1,6 +1,6 @@
 import csv
 import os
-from database.models import db, Book
+from backend.database.book import db, Book
 from sqlalchemy.exc import SQLAlchemyError
 
 # Funkce pro načtení mockovaných dat z CSV souboru

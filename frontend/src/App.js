@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
+import LoginForm from './LoginForm';
+import RegisterForm from './RegisterForm';
 
 const translations = {
   cs: {
@@ -18,7 +20,20 @@ const translations = {
     next: "Další",
     genres: "Žánry",
     page: "Stránka:",
-    of: "z"
+    of: "z",
+    login: "Přihlásit se",
+    register: "Registrovat se",
+    logout: "Odhlásit se",
+    username: "Uživatelské jméno",
+    password: "Heslo",
+    name: "Zobrazované jméno",
+    loginError: "Přihlášení se nezdařilo",
+    registerError: "Registrace se nezdařila",
+    welcomeMessage: "Vítejte, ",
+    yearOfPublication: "Rok vydání",
+    numberOfPages: "Počet stran",
+    averageRating: "Průměrné hodnocení",
+    numberOfRatings: "Počet hodnocení"
   },
   en: {
     title: "Book Store",
@@ -35,7 +50,20 @@ const translations = {
     next: "Next",
     genres: "Genres",
     page: "Page:",
-    of: "of"
+    of: "of",
+    login: "Login",
+    register: "Register",
+    logout: "Logout",
+    username: "Username",
+    password: "Password",
+    name: "Displayed name",
+    loginError: "Login failed",
+    registerError: "Registration failed",
+    welcomeMessage: "Welcome, ",
+    yearOfPublication: "Year of Publication",
+    numberOfPages: "Number of Pages",
+    averageRating: "Average Rating",
+    numberOfRatings: "Number of Ratings"
   }
 };
 
@@ -56,9 +84,13 @@ function App() {
     isbn: ''
   });
   const [language, setLanguage] = useState('cs');
+  const [user, setUser] = useState(null);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
 
   useEffect(() => {
     fetchBooks(currentPage, currentSearchQueries);
+    checkLoggedInUser();
   }, [currentPage, currentSearchQueries]);
 
   const fetchBooks = (page, queries) => {
@@ -79,9 +111,18 @@ function App() {
       })
       .catch(error => {
         console.error("There was an error fetching the books!", error);
-        setError(translations[language].error); // Použij překlad
+        setError(translations[language].error);
         setLoading(false);
       });
+  };
+
+  const checkLoggedInUser = async () => {
+    try {
+      const response = await axios.get('http://localhost:8007/api/user');
+      setUser(response.data.user);
+    } catch (error) {
+      console.error("Error checking logged in user", error);
+    }
   };
 
   const handlePageChange = (newPage) => {
@@ -118,7 +159,37 @@ function App() {
   };
 
   const toggleLanguage = () => {
-    setLanguage(prev => (prev === 'cs' ? 'en' : 'cs')); // Přepínání jazyka
+    setLanguage(prev => (prev === 'cs' ? 'en' : 'cs'));
+  };
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setShowLoginForm(false);
+    setShowRegisterForm(false);
+  };
+
+  const handleRegister = () => {
+    setShowRegisterForm(false);
+    setShowLoginForm(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('http://localhost:8007/api/logout');
+      setUser(null);
+    } catch (error) {
+      console.error("Error logging out", error);
+    }
+  };
+
+  const toggleLoginForm = () => {
+    setShowLoginForm(!showLoginForm);
+    setShowRegisterForm(false);
+  };
+
+  const toggleRegisterForm = () => {
+    setShowRegisterForm(!showRegisterForm);
+    setShowLoginForm(false);
   };
 
   if (loading) return (
@@ -137,53 +208,66 @@ function App() {
     <div className="App">
       <div className="header">
         <button onClick={toggleLanguage} className="language-toggle">
-          {language === 'cs' ? 'EN' : 'CS'} {/* Změna textu tlačítka */}
+          {language === 'cs' ? 'EN' : 'CS'}
         </button>
         <h1>{translations[language].title}</h1>
-        <div className="search-container">
-          <form onSubmit={handleSearchSubmit}>
-            <div className="search-fields">
-              <div className="search-field">
-                <label>{translations[language].searchBook}</label>
-                <input
-                  type="text"
-                  placeholder={translations[language].searchBook}
-                  value={searchQueries.title}
-                  onChange={handleSearchChange('title')}
-                  className="search-input"
-                />
-              </div>
-              <div className="search-field">
-                <label>{translations[language].searchAuthor}</label>
-                <input
-                  type="text"
-                  placeholder={translations[language].searchAuthor}
-                  value={searchQueries.author}
-                  onChange={handleSearchChange('author')}
-                  className="search-input"
-                />
-              </div>
-              <div className="search-field">
-                <label>{translations[language].searchISBN}</label>
-                <input
-                  type="text"
-                  placeholder={translations[language].searchISBN}
-                  value={searchQueries.isbn}
-                  onChange={handleSearchChange('isbn')}
-                  className="search-input"
-                />
-              </div>
+        {user ? (
+          <div className="auth-buttons logged-in">
+            <span className="welcome-message">{translations[language].welcomeMessage}{user.name}</span>
+            <button onClick={handleLogout} className="logout-button">{translations[language].logout}</button>
+          </div>
+        ) : (
+          <div className="auth-buttons">
+            <button onClick={toggleLoginForm} className="auth-button">{translations[language].login}</button>
+            <button onClick={toggleRegisterForm} className="auth-button">{translations[language].register}</button>
+          </div>
+        )}
+      </div>
+      {showLoginForm && <LoginForm onLogin={handleLogin} translations={translations} language={language} />}
+      {showRegisterForm && <RegisterForm onRegister={handleRegister} translations={translations} language={language} />}
+      <div className="search-container">
+        <form onSubmit={handleSearchSubmit}>
+          <div className="search-fields">
+            <div className="search-field">
+              <label>{translations[language].searchBook}</label>
+              <input
+                type="text"
+                placeholder={translations[language].searchBook}
+                value={searchQueries.title}
+                onChange={handleSearchChange('title')}
+                className="search-input"
+              />
             </div>
-            <div className="search-buttons">
-              <button type="submit" className="search-button">{translations[language].search}</button>
-              {(currentSearchQueries.title || currentSearchQueries.author || currentSearchQueries.isbn) && (
-                <button type="button" onClick={handleClearSearch} className="clear-button">
-                  {translations[language].clearSearch}
-                </button>
-              )}
+            <div className="search-field">
+              <label>{translations[language].searchAuthor}</label>
+              <input
+                type="text"
+                placeholder={translations[language].searchAuthor}
+                value={searchQueries.author}
+                onChange={handleSearchChange('author')}
+                className="search-input"
+              />
             </div>
-          </form>
-        </div>
+            <div className="search-field">
+              <label>{translations[language].searchISBN}</label>
+              <input
+                type="text"
+                placeholder={translations[language].searchISBN}
+                value={searchQueries.isbn}
+                onChange={handleSearchChange('isbn')}
+                className="search-input"
+              />
+            </div>
+          </div>
+          <div className="search-buttons">
+            <button type="submit" className="search-button">{translations[language].search}</button>
+            {(currentSearchQueries.title || currentSearchQueries.author || currentSearchQueries.isbn) && (
+              <button type="button" onClick={handleClearSearch} className="clear-button">
+                {translations[language].clearSearch}
+              </button>
+            )}
+          </div>
+        </form>
       </div>
 
       {books.length > 0 ? (
@@ -209,9 +293,9 @@ function App() {
                   <tr key={book.ISBN10 || book.ISBN13}>
                     <td>
                       {book.Cover_Image && (
-                        <img 
-                          src={book.Cover_Image} 
-                          alt={book.Title} 
+                        <img
+                          src={book.Cover_Image}
+                          alt={book.Title}
                           className="book-cover"
                           onError={(e) => {
                             e.target.src = '/placeholder-book.png';
@@ -235,16 +319,16 @@ function App() {
             </table>
           </div>
           <div className="pagination">
-            <button 
-              onClick={() => handlePageChange(currentPage - 1)} 
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
               className="pagination-button"
             >
               {translations[language].previous}
             </button>
             <span className="page-info">{translations[language].page} {currentPage} {translations[language].of} {totalPages}</span>
-            <button 
-              onClick={() => handlePageChange(currentPage + 1)} 
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               className="pagination-button"
             >
