@@ -4,12 +4,13 @@ FROM python:3.9-slim
 # Nastav pracovní adresář
 WORKDIR /app
 
-# Zkopíruj requirements.txt a nainstaluj závislosti
+ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /usr/local/bin/wait-for-it
+RUN chmod +x /usr/local/bin/wait-for-it
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Zkopíruj ostatní soubory
 COPY . .
 
-# Spusť Flask aplikaci
-CMD ["python", "app.py"]
+# Počkat na databázi a pak spustit aplikaci
+CMD ["sh", "-c", "wait-for-it db:5432 && python app.py"]

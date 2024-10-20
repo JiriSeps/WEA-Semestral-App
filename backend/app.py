@@ -3,9 +3,13 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 import os
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+
+# Import modelů
+from database import db
+from database.book import Book
+from database.user import User
 
 # Vytvoření a konfigurace aplikace
 app = Flask(__name__)
@@ -14,33 +18,7 @@ CORS(app, supports_credentials=True)
 # Inicializace databáze
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@db:5432/mydatabase'
 app.config['SECRET_KEY'] = 'your_secret_key_here'  # V produkci použijte bezpečný tajný klíč
-db = SQLAlchemy(app)
-
-# Definice modelů
-class Book(db.Model):
-    ISBN10 = db.Column(db.String(10), primary_key=True)
-    ISBN13 = db.Column(db.String(13), unique=True, nullable=False)
-    Title = db.Column(db.String(255), nullable=False)
-    Author = db.Column(db.String(255), nullable=False)
-    Genres = db.Column(db.String(255))
-    Cover_Image = db.Column(db.String(255))
-    Description = db.Column(db.Text)
-    Year_of_Publication = db.Column(db.Integer)
-    Number_of_Pages = db.Column(db.Integer)
-    Average_Customer_Rating = db.Column(db.Float)
-    Number_of_Ratings = db.Column(db.Integer)
-
-    def __repr__(self):
-        return f'<Book {self.Title}>'
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
+db.init_app(app)
 
 # Zajištění existence adresáře pro logy
 log_dir = os.path.join(os.path.dirname(__file__), 'logs')
@@ -110,7 +88,7 @@ def create_user(username, password, name):
         return new_user
     except Exception as e:
         db.session.rollback()
-        print(f"Error creating user: {str(e)}")
+        error_logger.error(f"Error creating user: {str(e)}")
         return None
 
 def authenticate_user(username, password):
@@ -280,7 +258,13 @@ def get_user():
             return jsonify({'user': {'id': user.id, 'username': user.username, 'name': user.name}}), 200
     return jsonify({'error': 'Uživatel není přihlášen'}), 401
 
-if __name__ == '__main__':
-    with app.app_context():
+# Vytvoření tabulek při spuštění aplikace
+with app.app_context():
+    try:
         db.create_all()
+        info_logger.info('Databázové tabulky byly úspěšně vytvořeny')
+    except Exception as e:
+        error_logger.error(f'Chyba při vytváření databázových tabulek: {str(e)}')
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8007, debug=True)

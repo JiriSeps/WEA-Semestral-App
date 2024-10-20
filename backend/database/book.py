@@ -1,6 +1,4 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
+from . import db
 
 class Book(db.Model):
     ISBN10 = db.Column(db.String(10), primary_key=True)
