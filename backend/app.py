@@ -239,77 +239,77 @@ def get_books():
         'total_pages': (total_books + per_page - 1) // per_page
     })
 
-@app.route('/api/fetch_books', methods=['GET'])
+@app.route('/api/fetch_books', methods=['POST'])
 def fetch_books():
     """
-    Přidá novou knihu do databáze.
-    
-    JSON Body:
-        isbn10 (str): ISBN10 číslo knihy.
-        isbn13 (str): ISBN13 číslo knihy.
-        title (str): Název knihy.
-        author (str): Autor knihy.
-        genres (str): Žánry knihy (oddělené středníkem).
-        cover_image (str): URL obrázku obálky knihy.
-        description (str): Popis knihy.
-        year_of_publication (int): Rok vydání knihy.
-        number_of_pages (int): Počet stránek knihy.
-        average_customer_rating (float): Průměrné hodnocení knihy zákazníky.
-        number_of_ratings (int): Počet hodnocení zákazníky.
+    Přidá nové knihy do databáze z příchozího JSON požadavku.
+
+    JSON Body (pole knih):
+        - isbn10 (str): ISBN10 číslo knihy.
+        - isbn13 (str): ISBN13 číslo knihy.
+        - title (str): Název knihy.
+        - author (str): Autor knihy.
+        - genres (str): Žánry knihy (oddělené středníkem).
+        - cover_image (str): URL obrázku obálky knihy.
+        - description (str): Popis knihy.
+        - year_of_publication (int): Rok vydání knihy.
+        - number_of_pages (int): Počet stránek knihy.
+        - average_customer_rating (float): Průměrné hodnocení knihy zákazníky.
+        - number_of_ratings (int): Počet hodnocení zákazníky.
 
     Returns:
         dict: JSON objekt s informací o úspěšnosti operace nebo chybová zpráva.
     """
-    info_logger.info('Zahájeno načítání knih z externí API')
+    info_logger.info('Zahájeno přijímání dat knih od klienta')
     try:
-        response = requests.get('http://wea.nti.tul.cz:1337/api/books', timeout=10)
-        if response.status_code == 200:
-            books_data = response.json()
-            info_logger.info('Úspěšně načteno %d knih z externí API', len(books_data))
+        books_data = request.get_json()
+        if not books_data:
+            error_logger.error('Chybějící data v požadavku')
+            return jsonify({'error': 'Chybějící data v požadavku'}), 400
 
-            saved_books = 0
-            for book in books_data:
-                isbn13 = book.get('isbn13')
-                isbn10 = book.get('isbn10')
-                title = book.get('title')
-                authors = book.get('authors')
-                categories = book.get('categories')
-                thumbnail = book.get('thumbnail')
-                description = book.get('description')
-                published_year = book.get('published_year')
-                num_pages = book.get('num_pages')
-                average_rating = book.get('average_rating')
-                ratings_count = book.get('ratings_count')
+        saved_books = 0
+        for book in books_data:
+            isbn13 = book.get('isbn13')
+            isbn10 = book.get('isbn10')
+            title = book.get('title')
+            authors = book.get('authors')
+            categories = book.get('categories')
+            thumbnail = book.get('thumbnail')
+            description = book.get('description')
+            published_year = book.get('published_year')
+            num_pages = book.get('num_pages')
+            average_rating = book.get('average_rating')
+            ratings_count = book.get('ratings_count')
 
-                if isinstance(authors, list):
-                    authors = '; '.join(authors)
+            # Pokud je authors seznam, spojíme jej do jednoho řetězce
+            if isinstance(authors, list):
+                authors = '; '.join(authors)
 
-                success, message = add_book(
-                    isbn10=isbn10,
-                    isbn13=isbn13,
-                    title=title,
-                    author=authors,
-                    genres=categories,
-                    cover_image=thumbnail,
-                    description=description,
-                    year_of_publication=published_year,
-                    number_of_pages=num_pages,
-                    average_customer_rating=average_rating,
-                    number_of_ratings=ratings_count
-                )
+            # Uložíme knihu do databáze
+            success, message = add_book(
+                isbn10=isbn10,
+                isbn13=isbn13,
+                title=title,
+                author=authors,
+                genres=categories,
+                cover_image=thumbnail,
+                description=description,
+                year_of_publication=published_year,
+                number_of_pages=num_pages,
+                average_customer_rating=average_rating,
+                number_of_ratings=ratings_count
+            )
 
-                if success:
-                    saved_books += 1
-                    info_logger.info('Kniha úspěšně uložena: %s (ISBN13: %s)', title, isbn13)
-                else:
-                    error_logger.error('Chyba při ukládání knihy %s: %s', isbn13, message)
+            if success:
+                saved_books += 1
+                info_logger.info('Kniha úspěšně uložena: %s (ISBN13: %s)', title, isbn13)
+            else:
+                error_logger.error('Chyba při ukládání knihy %s: %s', isbn13, message)
 
-            info_logger.info('Celkem uloženo %d knih z %d načtených', saved_books, len(books_data))
-            return jsonify({'message': f'Úspěšně načteno a uloženo {saved_books} knih'}), 200
-        error_logger.error('Chyba při načítání dat z externí API. Stavový kód: %d', response.status_code)
-        return jsonify({'error': 'Nepodařilo se načíst data z externí API'}), 500
-    except requests.RequestException as e:
-        error_logger.error('Výjimka při načítání knih z externí API: %s', str(e))
+        info_logger.info('Celkem uloženo %d knih z %d přijatých', saved_books, len(books_data))
+        return jsonify({'message': f'Úspěšně uloženo {saved_books} knih'}), 200
+    except Exception as e:
+        error_logger.error('Výjimka při zpracování knih: %s', str(e))
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/register', methods=['POST'])

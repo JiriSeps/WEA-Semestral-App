@@ -1,4 +1,5 @@
 import React from 'react';
+import Book from './Book';
 
 export const BookList = ({ books, translations, language }) => (
   <div className="table-container">
@@ -18,31 +19,20 @@ export const BookList = ({ books, translations, language }) => (
         </tr>
       </thead>
       <tbody>
-        {books.map(book => (
-          <tr key={book.ISBN10 || book.ISBN13}>
-            <td>
-              {book.Cover_Image && (
-                <img
-                  src={book.Cover_Image}
-                  alt={book.Title}
-                  className="book-cover"
-                  onError={(e) => {
-                    e.target.src = '/placeholder-book.png';
-                    e.target.onerror = null;
-                  }}
-                />
-              )}
-            </td>
-            <td>{book.Title}</td>
-            <td>{book.Author}</td>
-            <td>{book.ISBN10}</td>
-            <td>{book.ISBN13}</td>
-            <td>{book.Genres}</td>
-            <td>{book.Year_of_Publication}</td>
-            <td>{book.Number_of_Pages}</td>
-            <td>{book.Average_Customer_Rating?.toFixed(1)}</td>
-            <td>{book.Number_of_Ratings}</td>
-          </tr>
+        {books.map((book) => (
+          <Book
+            key={book.ISBN10 || book.ISBN13}
+            coverImage={book.Cover_Image}
+            title={book.Title}
+            author={book.Author}
+            isbn10={book.ISBN10}
+            isbn13={book.ISBN13}
+            genres={book.Genres}
+            yearOfPublication={book.Year_of_Publication}
+            numberOfPages={book.Number_of_Pages}
+            averageRating={book.Average_Customer_Rating}
+            numberOfRatings={book.Number_of_Ratings}
+          />
         ))}
       </tbody>
     </table>
