@@ -394,6 +394,45 @@ def get_user():
             return jsonify({'user': {'id': user.id, 'username': user.username, 'name': user.name}}), 200
     return jsonify({'error': 'Uživatel není přihlášen'}), 401
 
+@app.route('/api/books/<isbn>')
+def get_book(isbn):
+    """
+    Získá detail knihy podle ISBN.
+    
+    Args:
+        isbn (str): ISBN10 nebo ISBN13 knihy.
+        
+    Returns:
+        dict: JSON objekt obsahující detaily knihy nebo chybovou zprávu.
+    """
+    try:
+        book = Book.query.filter((Book.ISBN10 == isbn) | (Book.ISBN13 == isbn)).first()
+        
+        if not book:
+            info_logger.warning('Kniha s ISBN %s nebyla nalezena', isbn)
+            return jsonify({'error': 'Kniha nebyla nalezena'}), 404
+            
+        book_data = {
+            'ISBN10': book.ISBN10,
+            'ISBN13': book.ISBN13,
+            'Title': book.Title,
+            'Author': book.Author,
+            'Genres': book.Genres,
+            'Cover_Image': book.Cover_Image,
+            'Description': book.Description,
+            'Year_of_Publication': book.Year_of_Publication,
+            'Number_of_Pages': book.Number_of_Pages,
+            'Average_Customer_Rating': book.Average_Customer_Rating,
+            'Number_of_Ratings': book.Number_of_Ratings,
+        }
+        
+        info_logger.info('Úspěšně získán detail knihy %s', isbn)
+        return jsonify({'book': book_data})
+    except Exception as e:
+        error_logger.error('Chyba při získávání detailu knihy %s: %s', isbn, str(e))
+        return jsonify({'error': 'Interní chyba serveru'}), 500
+    
+
 # Vytvoření tabulek při spuštění aplikace
 with app.app_context():
     try:
@@ -401,6 +440,7 @@ with app.app_context():
         info_logger.info('Databázové tabulky byly úspěšně vytvořeny')
     except Exception as e:
         error_logger.error('Chyba při vytváření databázových tabulek: %s', str(e))
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8007, debug=True)

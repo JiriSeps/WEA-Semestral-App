@@ -27,7 +27,12 @@ export const translations = {
         yearOfPublication: "Rok vydání",
         numberOfPages: "Počet stran",
         averageRating: "Průměrné hodnocení",
-        numberOfRatings: "Počet hodnocení"
+        numberOfRatings: "Počet hodnocení",
+        back: 'Zpět',
+        description: 'Popis',
+        bookNotFound: 'Kniha nebyla nalezena',
+        isbn10: 'ISBN-10',
+        isbn13: 'ISBN-13'
     },
     en: {
         title: "Book Store",
@@ -57,6 +62,11 @@ export const translations = {
         yearOfPublication: "Year of Publication",
         numberOfPages: "Number of Pages",
         averageRating: "Average Rating",
-        numberOfRatings: "Number of Ratings"
+        numberOfRatings: "Number of Ratings",
+        back: 'Back',
+        description: 'Description',
+        bookNotFound: 'Book not found',
+        isbn10: 'ISBN-10',
+        isbn13: 'ISBN-13'
     }
   };
