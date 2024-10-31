@@ -1,8 +1,17 @@
 # Průběh úkolů
 
 ### ✅ cv01 - Hotovo
+
+---
+
 ### ✅ cv02 - Hotovo
+
+---
+
 ### ✅ cv03 - Hotovo
+
+---
+
 ### ✅ cv04 - Hotovo
 
 ---
@@ -18,3 +27,15 @@
 ---
 
 ### 📋 cv07 - Zatím nezačato
+
+---
+
+### 📋 cv08 - Zatím nezačato
+
+---
+
+### 📋 cv09 - Zatím nezačato
+
+---
+
+### 📋 cv10 - Zatím nezačato
