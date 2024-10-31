@@ -1,9 +1,11 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 
-const BookDetail = ({ translations, language }) => {
-  const { isbn } = useParams();
-  const navigate = useNavigate();
+const BookDetail = ({ 
+  isbn, 
+  translations, 
+  language, 
+  onBackToList  // Nový prop
+}) => {
   const [book, setBook] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -42,13 +44,14 @@ const BookDetail = ({ translations, language }) => {
   return (
     <div className="book-detail-container">
       <button
-        onClick={() => navigate(-1)}
+        onClick={onBackToList}
         className="back-button"
       >
         {translations[language].back}
       </button>
       
       <div className="book-card">
+        {/* Zbytek kódu zůstává stejný jako v původní verzi */}
         <div className="book-content">
           <div className="book-header">
             <h1 className="book-title">{book.Title}</h1>

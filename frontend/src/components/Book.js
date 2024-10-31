@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const Book = ({ 
   coverImage, 
@@ -11,12 +10,11 @@ const Book = ({
   yearOfPublication, 
   numberOfPages, 
   averageRating, 
-  numberOfRatings 
+  numberOfRatings,
+  onBookSelect  // Nový prop
 }) => {
-  const navigate = useNavigate();
-  
   const handleClick = () => {
-    navigate(`/book/${isbn10 || isbn13}`);
+    onBookSelect(isbn10 || isbn13);
   };
 
   return (

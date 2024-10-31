@@ -14,7 +14,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
       - PYTHONPATH=/app
-      - FLASK_ENV=development  # Nastavení vývojového prostředí pro mock data
+      - FLASK_ENV=development
     depends_on:
       - db
     networks:

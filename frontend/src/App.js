@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import { Header } from './components/Header';
 import { SearchForm } from './components/SearchForm';
@@ -32,6 +31,8 @@ function App() {
   const [user, setUser] = useState(null);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [currentView, setCurrentView] = useState('list');
+  const [selectedBookIsbn, setSelectedBookIsbn] = useState(null);
 
   // Efekty
   useEffect(() => {
@@ -140,6 +141,16 @@ function App() {
     setShowLoginForm(false);
   };
 
+  const handleBookSelect = (isbn) => {
+    setSelectedBookIsbn(isbn);
+    setCurrentView('detail');
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedBookIsbn(null);
+  };
+
   // Loading a Error stavy
   if (loading) return (
     <div className="loading-container">
@@ -155,82 +166,76 @@ function App() {
 
   // Render
   return (
-    <Router>
-      <div className="App">
-        <Header 
-          language={language}
-          toggleLanguage={toggleLanguage}
-          user={user}
-          handleLogout={handleLogout}
-          toggleLoginForm={toggleLoginForm}
-          toggleRegisterForm={toggleRegisterForm}
-          translations={translations}
+    <div className="App">
+      <Header 
+        language={language}
+        toggleLanguage={toggleLanguage}
+        user={user}
+        handleLogout={handleLogout}
+        toggleLoginForm={toggleLoginForm}
+        toggleRegisterForm={toggleRegisterForm}
+        translations={translations}
+      />
+      
+      {showLoginForm && (
+        <LoginForm 
+          onLogin={handleLogin} 
+          translations={translations} 
+          language={language} 
         />
-        
-        {showLoginForm && (
-          <LoginForm 
-            onLogin={handleLogin} 
-            translations={translations} 
-            language={language} 
-          />
-        )}
-        
-        {showRegisterForm && (
-          <RegisterForm 
-            onRegister={handleRegister} 
-            translations={translations} 
-            language={language} 
-          />
-        )}
+      )}
+      
+      {showRegisterForm && (
+        <RegisterForm 
+          onRegister={handleRegister} 
+          translations={translations} 
+          language={language} 
+        />
+      )}
 
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              <>
-                <SearchForm 
-                  searchQueries={searchQueries}
-                  handleSearchChange={handleSearchChange}
-                  handleSearchSubmit={handleSearchSubmit}
-                  handleClearSearch={handleClearSearch}
-                  currentSearchQueries={currentSearchQueries}
-                  translations={translations}
-                  language={language}
-                />
-
-                {books.length > 0 ? (
-                  <>
-                    <BookList 
-                      books={books}
-                      translations={translations}
-                      language={language}
-                    />
-                    <Pagination 
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      handlePageChange={handlePageChange}
-                      translations={translations}
-                      language={language}
-                    />
-                  </>
-                ) : (
-                  <div className="no-results">{translations[language].noResults}</div>
-                )}
-              </>
-            } 
+      {currentView === 'list' && (
+        <>
+          <SearchForm 
+            searchQueries={searchQueries}
+            handleSearchChange={handleSearchChange}
+            handleSearchSubmit={handleSearchSubmit}
+            handleClearSearch={handleClearSearch}
+            currentSearchQueries={currentSearchQueries}
+            translations={translations}
+            language={language}
           />
-          <Route 
-            path="/book/:isbn" 
-            element={
-              <BookDetail 
+
+          {books.length > 0 ? (
+            <>
+              <BookList 
+                books={books}
+                translations={translations}
+                language={language}
+                onBookSelect={handleBookSelect}
+              />
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
                 translations={translations}
                 language={language}
               />
-            } 
-          />
-        </Routes>
-      </div>
-    </Router>
+            </>
+          ) : (
+            <div className="no-results">{translations[language].noResults}</div>
+          )}
+        </>
+      )}
+
+      {currentView === 'detail' && (
+        <BookDetail 
+          isbn={selectedBookIsbn}
+          translations={translations}
+          language={language}
+          onBackToList={handleBackToList}
+        />
+      )}
+    </div>
   );
 }
 

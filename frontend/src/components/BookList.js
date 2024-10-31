@@ -1,7 +1,12 @@
 import React from 'react';
 import Book from './Book';
 
-export const BookList = ({ books, translations, language }) => (
+export const BookList = ({ 
+  books, 
+  translations, 
+  language, 
+  onBookSelect  // Nový prop
+}) => (
   <div className="table-container">
     <table>
       <thead>
@@ -32,6 +37,7 @@ export const BookList = ({ books, translations, language }) => (
             numberOfPages={book.Number_of_Pages}
             averageRating={book.Average_Customer_Rating}
             numberOfRatings={book.Number_of_Ratings}
+            onBookSelect={onBookSelect}
           />
         ))}
       </tbody>
