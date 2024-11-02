@@ -5,7 +5,7 @@ export const BookList = ({
   books, 
   translations, 
   language, 
-  onBookSelect  // Nový prop
+  onBookSelect
 }) => (
   <div className="table-container">
     <table>
@@ -18,9 +18,6 @@ export const BookList = ({
           <th>ISBN13</th>
           <th>{translations[language].genres}</th>
           <th>{translations[language].yearOfPublication}</th>
-          <th>{translations[language].numberOfPages}</th>
-          <th>{translations[language].averageRating}</th>
-          <th>{translations[language].numberOfRatings}</th>
         </tr>
       </thead>
       <tbody>
@@ -34,9 +31,6 @@ export const BookList = ({
             isbn13={book.ISBN13}
             genres={book.Genres}
             yearOfPublication={book.Year_of_Publication}
-            numberOfPages={book.Number_of_Pages}
-            averageRating={book.Average_Customer_Rating}
-            numberOfRatings={book.Number_of_Ratings}
             onBookSelect={onBookSelect}
           />
         ))}

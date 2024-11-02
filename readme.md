@@ -1,3 +1,9 @@
+# Příjem knih
+
+@app.route('/api/fetch_books', methods=['POST'])
+
+---
+
 # Průběh úkolů
 
 ### ✅ cv01 - Hotovo
@@ -21,8 +27,8 @@
 - **Produkční server (Guinicorn)** - ✅ Hotovo
 - **Detail knihy SPA** - ✅ Hotovo
 - **Tlačítko zpět na detailu knihy** - ✅ Hotovo
-- **Redukce datového toku** - ❓ Pravděpodobně ne (nutné ověřit)
-- **Komentáře** - ❌ Chybí
+- **Redukce datového toku** - ✅ Hotovo
+- **Komentáře** - ✅ Hotovo
 
 ---
 
