@@ -6,6 +6,8 @@
 
 # Průběh úkolů
 
+<!--✅ ❌ ❓ 🛠 📋-->
+
 ### ✅ cv01
 - **Vyberte si backend a frontend** - ✅ Hotovo
 - **Vytvořte Dockerfiles a Docker-compose** - ✅ Hotovo
