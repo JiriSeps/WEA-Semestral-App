@@ -6,19 +6,31 @@
 
 # Průběh úkolů
 
-### ✅ cv01 - Hotovo
+### ✅ cv01
+- **Vyberte si backend a frontend** - ✅ Hotovo
+- **Vytvořte Dockerfiles a Docker-compose** - ✅ Hotovo
+- **Vytvořte HelloWorld!** - ✅ Hotovo
 
 ---
 
-### ✅ cv02 - Hotovo
+### ✅ cv02
+- **Vyberte si vhodnou databázi** - ✅ Hotovo
+- **Napojte databázi** - ✅ Hotovo
+---
+
+### ✅ cv03
+- **Vytvořte endpoint pro příjem knih** - ✅ Hotovo
+- **Zpracujte přijaté knihy** - ✅ Hotovo
+- **Vytvořte zobrazení pro knihy** - ✅ Hotovo
+- **Přidejte stránkování (25 knih na jedné stránce)** - ✅ Hotovo
+- **Přidejte filtrování** - ✅ Hotovo
 
 ---
 
-### ✅ cv03 - Hotovo
-
----
-
-### ✅ cv04 - Hotovo
+### ✅ cv04
+- **Umožněte přihlášení a registraci uživatelů** - ✅ Hotovo
+- **Umožněte přepínat mezi jazyky CS/EN** - ✅ Hotovo
+- **Code quality** - ✅ Hotovo
 
 ---
 
