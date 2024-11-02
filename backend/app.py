@@ -11,13 +11,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 
 # Import modelů
+from database.comment_operations import add_comment, delete_comment, get_comments_for_book
 from database import db
 from database.book import Book
 from database.user import User
 
 # Vytvoření a konfigurace aplikace
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=["http://localhost:3007"])
 
 # Inicializace databáze
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@db:5432/mydatabase'
@@ -239,6 +240,7 @@ def get_books():
         'total_pages': (total_books + per_page - 1) // per_page
     })
 
+# Upravená funkce fetch_books pro správu viditelnosti knih
 @app.route('/api/fetch_books', methods=['POST'])
 def fetch_books():
     """
@@ -259,6 +261,8 @@ def fetch_books():
 
     Returns:
         dict: JSON objekt s informací o úspěšnosti operace nebo chybová zpráva.
+    Aktualizuje knihy v databázi z příchozího JSON požadavku.
+    Nyní zahrnuje logiku pro skrývání/zobrazování knih namísto mazání.
     """
     info_logger.info('Zahájeno přijímání dat knih od klienta')
     try:
@@ -267,51 +271,55 @@ def fetch_books():
             error_logger.error('Chybějící data v požadavku')
             return jsonify({'error': 'Chybějící data v požadavku'}), 400
 
-        saved_books = 0
+        # Získáme všechna ISBN z nových dat
+        new_isbns = set(book.get('isbn10') for book in books_data)
+        
+        # Označíme knihy, které nejsou v nových datech jako skryté
+        Book.query.filter(~Book.ISBN10.in_(new_isbns)).update({Book.is_visible: False}, synchronize_session=False)
+        
+        updated_books = 0
+        new_books = 0
+        
         for book in books_data:
-            isbn13 = book.get('isbn13')
             isbn10 = book.get('isbn10')
-            title = book.get('title')
-            authors = book.get('authors')
-            categories = book.get('categories')
-            thumbnail = book.get('thumbnail')
-            description = book.get('description')
-            published_year = book.get('published_year')
-            num_pages = book.get('num_pages')
-            average_rating = book.get('average_rating')
-            ratings_count = book.get('ratings_count')
-
-            # Pokud je authors seznam, spojíme jej do jednoho řetězce
-            if isinstance(authors, list):
-                authors = '; '.join(authors)
-
-            # Uložíme knihu do databáze
-            success, message = add_book(
-                isbn10=isbn10,
-                isbn13=isbn13,
-                title=title,
-                author=authors,
-                genres=categories,
-                cover_image=thumbnail,
-                description=description,
-                year_of_publication=published_year,
-                number_of_pages=num_pages,
-                average_customer_rating=average_rating,
-                number_of_ratings=ratings_count
-            )
-
-            if success:
-                saved_books += 1
-                info_logger.info('Kniha úspěšně uložena: %s (ISBN13: %s)', title, isbn13)
+            existing_book = Book.query.get(isbn10)
+            
+            if existing_book:
+                # Aktualizujeme existující knihu a nastavíme ji jako viditelnou
+                existing_book.is_visible = True
+                existing_book.Title = book.get('title')
+                existing_book.Author = book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', []))
+                # ... (aktualizace dalších polí)
+                updated_books += 1
             else:
-                error_logger.error('Chyba při ukládání knihy %s: %s', isbn13, message)
+                # Přidáme novou knihu
+                success, _ = add_book(
+                    isbn10=isbn10,
+                    isbn13=book.get('isbn13'),
+                    title=book.get('title'),
+                    author=book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', [])),
+                    genres=book.get('categories'),
+                    cover_image=book.get('thumbnail'),
+                    description=book.get('description'),
+                    year_of_publication=book.get('published_year'),
+                    number_of_pages=book.get('num_pages'),
+                    average_customer_rating=book.get('average_rating'),
+                    number_of_ratings=book.get('ratings_count')
+                )
+                if success:
+                    new_books += 1
 
-        info_logger.info('Celkem uloženo %d knih z %d přijatých', saved_books, len(books_data))
-        return jsonify({'message': f'Úspěšně uloženo {saved_books} knih'}), 200
+        db.session.commit()
+        info_logger.info('Aktualizováno %d knih, přidáno %d nových knih', updated_books, new_books)
+        return jsonify({
+            'message': f'Aktualizováno {updated_books} knih, přidáno {new_books} nových knih'
+        }), 200
+        
     except Exception as e:
+        db.session.rollback()
         error_logger.error('Výjimka při zpracování knih: %s', str(e))
         return jsonify({'error': str(e)}), 500
-
+    
 @app.route('/api/register', methods=['POST'])
 def register():
     """
@@ -430,6 +438,105 @@ def get_book(isbn):
         return jsonify({'book': book_data})
     except Exception as e:
         error_logger.error('Chyba při získávání detailu knihy %s: %s', isbn, str(e))
+        return jsonify({'error': 'Interní chyba serveru'}), 500
+    
+    # Nové endpointy pro komentáře
+@app.route('/api/comments/<isbn>', methods=['GET'])
+def get_book_comments(isbn):
+    """
+    Získá komentáře ke knize.
+    
+    Args:
+        isbn (str): ISBN10 knihy
+        
+    Query Parameters:
+        page (int): Číslo stránky (výchozí: 1)
+        per_page (int): Počet komentářů na stránku (výchozí: 10)
+    """
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    try:
+        comments, total, message = get_comments_for_book(isbn, page, per_page)
+        
+        if comments is None:
+            info_logger.warning('Kniha %s nebyla nalezena nebo není viditelná', isbn)
+            return jsonify({'error': message}), 404
+            
+        comments_data = [{
+            'id': comment.id,
+            'text': comment.text,
+            'created_at': comment.created_at.isoformat(),
+            'user_id': comment.user_id
+        } for comment in comments]
+        
+        info_logger.info('Úspěšně získány komentáře pro knihu %s', isbn)
+        return jsonify({
+            'comments': comments_data,
+            'total_comments': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page
+        })
+    except Exception as e:
+        error_logger.error('Chyba při získávání komentářů ke knize %s: %s', isbn, str(e))
+        return jsonify({'error': 'Interní chyba serveru'}), 500
+
+@app.route('/api/comments', methods=['POST'])
+def add_book_comment():
+    """
+    Přidá nový komentář ke knize.
+    Vyžaduje přihlášeného uživatele.
+    
+    JSON Body:
+        book_isbn (str): ISBN10 knihy
+        text (str): Text komentáře
+    """
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+        
+    data = request.json
+    book_isbn = data.get('book_isbn')
+    text = data.get('text')
+    
+    if not book_isbn or not text:
+        return jsonify({'error': 'Chybí povinné údaje'}), 400
+        
+    try:
+        success, message = add_comment(book_isbn, user_id, text)
+        
+        if success:
+            info_logger.info('Uživatel %s přidal komentář ke knize %s', user_id, book_isbn)
+            return jsonify({'message': message}), 201
+        else:
+            info_logger.warning('Nepodařilo se přidat komentář ke knize %s: %s', book_isbn, message)
+            return jsonify({'error': message}), 400
+    except Exception as e:
+        error_logger.error('Chyba při přidávání komentáře: %s', str(e))
+        return jsonify({'error': 'Interní chyba serveru'}), 500
+
+@app.route('/api/comments/<int:comment_id>', methods=['DELETE'])
+def delete_book_comment(comment_id):
+    """
+    Smaže komentář.
+    Vyžaduje přihlášeného uživatele a vlastnictví komentáře.
+    """
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+        
+    try:
+        success, message = delete_comment(comment_id, user_id)
+        
+        if success:
+            info_logger.info('Komentář %s byl smazán uživatelem %s', comment_id, user_id)
+            return jsonify({'message': message}), 200
+        else:
+            info_logger.warning('Nepodařilo se smazat komentář %s: %s', comment_id, message)
+            return jsonify({'error': message}), 400
+    except Exception as e:
+        error_logger.error('Chyba při mazání komentáře %s: %s', comment_id, str(e))
         return jsonify({'error': 'Interní chyba serveru'}), 500
     
 

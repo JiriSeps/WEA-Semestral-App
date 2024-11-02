@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+axios.defaults.withCredentials = true;
 
 function LoginForm({ onLogin, translations, language }) {
   const [username, setUsername] = useState('');

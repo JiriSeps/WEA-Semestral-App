@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import BookComments from './BookComments';
 
 const BookDetail = ({ 
   isbn, 
   translations, 
   language, 
-  onBackToList  // Nový prop
+  onBackToList,
+  user // Add user prop
 }) => {
   const [book, setBook] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -49,9 +51,8 @@ const BookDetail = ({
       >
         {translations[language].back}
       </button>
-      
+
       <div className="book-card">
-        {/* Zbytek kódu zůstává stejný jako v původní verzi */}
         <div className="book-content">
           <div className="book-header">
             <h1 className="book-title">{book.Title}</h1>
@@ -90,13 +91,13 @@ const BookDetail = ({
               </div>
             </div>
           </div>
-          
+
           <div className="book-description-section">
             <div className="genres-container">
               <h3 className="genres-title">{translations[language].genres}</h3>
               <p className="genres-text">{book.Genres || '-'}</p>
             </div>
-            
+
             {book.Description && (
               <div className="description-container">
                 <h3 className="description-title">{translations[language].description}</h3>
@@ -105,6 +106,14 @@ const BookDetail = ({
             )}
           </div>
         </div>
+        
+        {/* Add Comments Section */}
+        <BookComments 
+          isbn={book.ISBN10} 
+          translations={translations} 
+          language={language}
+          user={user}
+        />
       </div>
     </div>
   );

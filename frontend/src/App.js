@@ -9,6 +9,7 @@ import BookDetail from './components/BookDetail';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import './App.css';
+axios.defaults.withCredentials = true;  
 
 function App() {
   // Stavové proměnné
@@ -233,6 +234,7 @@ function App() {
           translations={translations}
           language={language}
           onBackToList={handleBackToList}
+          user={user} 
         />
       )}
     </div>

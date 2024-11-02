@@ -32,7 +32,14 @@ export const translations = {
         description: 'Popis',
         bookNotFound: 'Kniha nebyla nalezena',
         isbn10: 'ISBN-10',
-        isbn13: 'ISBN-13'
+        isbn13: 'ISBN-13',
+        comments: "Komentáře",
+        addComment: "Přidat komentář",
+        addCommentPlaceholder: "Napište komentář...",
+        loginToComment: "Pro přidání komentáře se musíte přihlásit",
+        noComments: "Zatím žádné komentáře",
+        errorLoadingComments: "Chyba při načítání komentářů",
+        errorAddingComment: "Chyba při přidávání komentáře"
     },
     en: {
         title: "Book Store",
@@ -67,6 +74,13 @@ export const translations = {
         description: 'Description',
         bookNotFound: 'Book not found',
         isbn10: 'ISBN-10',
-        isbn13: 'ISBN-13'
+        isbn13: 'ISBN-13',
+        comments: "Comments",
+        addComment: "Add comment",
+        addCommentPlaceholder: "Write a comment...",
+        loginToComment: "Please log in to add a comment",
+        noComments: "No comments yet",
+        errorLoadingComments: "Error loading comments",
+        errorAddingComment: "Error adding comment"
     }
-  };
+};

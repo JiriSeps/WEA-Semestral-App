@@ -432,3 +432,141 @@ tr:hover {
   line-height: 1.6;
 }
 
+
+/* Comments section container */
+.comments-section {
+  margin-top: 40px;
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.comments-title {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 20px;
+  font-family: 'Merriweather', serif;
+  font-weight: 600;
+}
+
+/* Comment form styles */
+.comment-form {
+  margin-bottom: 30px;
+}
+
+.comment-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  min-height: 100px;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.submit-comment {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.submit-comment:hover {
+  background-color: #0056b3;
+}
+
+/* Login message */
+.login-message {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  color: #6c757d;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Comments list */
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.comment-item {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  transition: transform 0.2s ease;
+}
+
+.comment-item:hover {
+  transform: translateX(5px);
+}
+
+.comment-timestamp {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.comment-text {
+  color: #333;
+  line-height: 1.5;
+}
+
+/* No comments message */
+.no-comments {
+  text-align: center;
+  color: #6c757d;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+/* Loading and error states */
+.comments-loading,
+.comments-error {
+  text-align: center;
+  padding: 20px;
+  border-radius: 4px;
+}
+
+.comments-loading {
+  color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.comments-error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .comments-section {
+    padding: 15px;
+  }
+  
+  .comments-title {
+    font-size: 1.25rem;
+  }
+  
+  .comment-textarea {
+    min-height: 80px;
+  }
+}
