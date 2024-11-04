@@ -58,7 +58,7 @@ def get_all_books(page, per_page):
     Returns:
         tuple: Seznam knih a celkový počet knih.
     """
-    books = Book.query.paginate(page=page, per_page=per_page, error_out=False)
+    books = Book.query.filter_by(is_visible=True).paginate(page=page, per_page=per_page, error_out=False)
     return books.items, books.total
 
 def search_books(title, authors, isbn, page, per_page):
@@ -75,7 +75,7 @@ def search_books(title, authors, isbn, page, per_page):
     Returns:
         tuple: Seznam knih a celkový počet knih.
     """
-    query = Book.query
+    query = Book.query.filter_by(is_visible=True)
     if title:
         query = query.filter(Book.Title.ilike(f'%{title}%'))
     if authors:
@@ -286,16 +286,17 @@ def fetch_books():
             if existing_book:
                 # Aktualizujeme existující knihu a nastavíme ji jako viditelnou
                 existing_book.is_visible = True
+                existing_book.ISBN10 = isbn10
+                existing_book.ISBN13 = book.get('isbn13')
                 existing_book.Title = book.get('title')
                 existing_book.Author = book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', []))
-                existing_book.ISBN13 = book.get('isbn13')
                 existing_book.Genres = book.get('categories')
-                existing_book.CoverImage = book.get('thumbnail')
+                existing_book.Cover_Image = book.get('thumbnail')
                 existing_book.Description = book.get('description')
-                existing_book.YearOfPublication = book.get('published_year')
-                existing_book.NumberOfPages = book.get('num_pages')
-                existing_book.AverageCustomerRating = book.get('average_rating')
-                existing_book.NumberOfRatings = book.get('ratings_count')
+                existing_book.Year_of_Publication = book.get('published_year')
+                existing_book.Number_of_Pages = book.get('num_pages')
+                existing_book.Average_Customer_Rating = book.get('average_rating')
+                existing_book.Number_of_Ratings = book.get('ratings_count')
                 updated_books += 1
             else:
                 # Přidáme novou knihu
@@ -305,12 +306,12 @@ def fetch_books():
                     Title=book.get('title'),
                     Author=book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', [])),
                     Genres=book.get('categories'),
-                    CoverImage=book.get('thumbnail'),
+                    Cover_Image=book.get('thumbnail'),
                     Description=book.get('description'),
-                    YearOfPublication=book.get('published_year'),
-                    NumberOfPages=book.get('num_pages'),
-                    AverageCustomerRating=book.get('average_rating'),
-                    NumberOfRatings=book.get('ratings_count'),
+                    Year_of_Publication=book.get('published_year'),
+                    Number_of_Pages=book.get('num_pages'),
+                    Average_Customer_Rating=book.get('average_rating'),
+                    Number_of_Ratings=book.get('ratings_count'),
                     is_visible=True
                 )
                 db.session.add(new_book)
