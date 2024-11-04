@@ -245,6 +245,7 @@ def get_books():
 def fetch_books():
     """
     Přidá nové knihy do databáze z příchozího JSON požadavku.
+    Nejprve nastaví všem knihám viditelnost na false, poté aktivuje pouze knihy z příchozího souboru.
 
     JSON Body (pole knih):
         - isbn10 (str): ISBN10 číslo knihy.
@@ -261,8 +262,6 @@ def fetch_books():
 
     Returns:
         dict: JSON objekt s informací o úspěšnosti operace nebo chybová zpráva.
-    Aktualizuje knihy v databázi z příchozího JSON požadavku.
-    Nyní zahrnuje logiku pro skrývání/zobrazování knih namísto mazání.
     """
     info_logger.info('Zahájeno přijímání dat knih od klienta')
     try:
@@ -271,17 +270,17 @@ def fetch_books():
             error_logger.error('Chybějící data v požadavku')
             return jsonify({'error': 'Chybějící data v požadavku'}), 400
 
-        # Získáme všechna ISBN z nových dat
-        new_isbns = set(book.get('isbn10') for book in books_data)
-        
-        # Označíme knihy, které nejsou v nových datech jako skryté
-        Book.query.filter(~Book.ISBN10.in_(new_isbns)).update({Book.is_visible: False}, synchronize_session=False)
+        # Nejprve nastavíme všem knihám viditelnost na false
+        Book.query.update({Book.is_visible: False}, synchronize_session=False)
         
         updated_books = 0
         new_books = 0
         
         for book in books_data:
             isbn10 = book.get('isbn10')
+            if not isbn10:
+                continue
+                
             existing_book = Book.query.get(isbn10)
             
             if existing_book:
@@ -289,25 +288,33 @@ def fetch_books():
                 existing_book.is_visible = True
                 existing_book.Title = book.get('title')
                 existing_book.Author = book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', []))
-                # ... (aktualizace dalších polí)
+                existing_book.ISBN13 = book.get('isbn13')
+                existing_book.Genres = book.get('categories')
+                existing_book.CoverImage = book.get('thumbnail')
+                existing_book.Description = book.get('description')
+                existing_book.YearOfPublication = book.get('published_year')
+                existing_book.NumberOfPages = book.get('num_pages')
+                existing_book.AverageCustomerRating = book.get('average_rating')
+                existing_book.NumberOfRatings = book.get('ratings_count')
                 updated_books += 1
             else:
                 # Přidáme novou knihu
-                success, _ = add_book(
-                    isbn10=isbn10,
-                    isbn13=book.get('isbn13'),
-                    title=book.get('title'),
-                    author=book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', [])),
-                    genres=book.get('categories'),
-                    cover_image=book.get('thumbnail'),
-                    description=book.get('description'),
-                    year_of_publication=book.get('published_year'),
-                    number_of_pages=book.get('num_pages'),
-                    average_customer_rating=book.get('average_rating'),
-                    number_of_ratings=book.get('ratings_count')
+                new_book = Book(
+                    ISBN10=isbn10,
+                    ISBN13=book.get('isbn13'),
+                    Title=book.get('title'),
+                    Author=book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', [])),
+                    Genres=book.get('categories'),
+                    CoverImage=book.get('thumbnail'),
+                    Description=book.get('description'),
+                    YearOfPublication=book.get('published_year'),
+                    NumberOfPages=book.get('num_pages'),
+                    AverageCustomerRating=book.get('average_rating'),
+                    NumberOfRatings=book.get('ratings_count'),
+                    is_visible=True
                 )
-                if success:
-                    new_books += 1
+                db.session.add(new_book)
+                new_books += 1
 
         db.session.commit()
         info_logger.info('Aktualizováno %d knih, přidáno %d nových knih', updated_books, new_books)
