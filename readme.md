@@ -36,7 +36,7 @@
 
 ---
 
-### 🛠 cv05/cv06
+### ✅ cv05/cv06
 - **Zprovoznění komunikace na CDB** - ✅ Hotovo
 - **Produkční server (Guinicorn)** - ✅ Hotovo
 - **Detail knihy SPA** - ✅ Hotovo
@@ -46,7 +46,7 @@
 
 ---
 
-### 📋 cv07 - Zatím nezačato
+### 🛠 cv07 - Zatím nezačato
 
 ---
 
