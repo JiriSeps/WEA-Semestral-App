@@ -13,19 +13,28 @@ RUN apt-get update && apt-get install -y \
 ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /usr/local/bin/wait-for-it
 RUN chmod +x /usr/local/bin/wait-for-it
 
-# Kopírování requirements
+# Kopírování requirements a instalace závislostí
 COPY requirements.txt .
-
-# Instalace Python závislostí
 RUN pip install --no-cache-dir -r requirements.txt \
     && pip install gunicorn
 
 # Kopírování celého projektu
 COPY . .
 
+# Vytvoření a nastavení init skriptu
+COPY init-db.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/init-db.sh
+
 # Nastavení proměnných prostředí
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    FLASK_APP=app.py
 
-# Spuštění aplikace přes Gunicorn
-CMD ["sh", "-c", "wait-for-it db:5432 && gunicorn --bind 0.0.0.0:8007 app:app"]
+# Vytvoření adresáře pro migrations, pokud neexistuje
+RUN mkdir -p migrations
+
+# Inicializace Flask-Migrate (pokud ještě není inicializován)
+RUN flask db init || true
+
+# Spuštění init skriptu při startu kontejneru
+CMD ["init-db.sh"]

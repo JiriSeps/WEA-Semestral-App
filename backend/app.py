@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request, session
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import requests
+from flask_migrate import Migrate
 
 # Import modelů
 from database.comment_operations import add_comment, delete_comment, get_comments_for_book
@@ -21,6 +22,7 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://localhost:3007"])
 
 # Inicializace databáze
+migrate = Migrate(app, db)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@db:5432/mydatabase'
 app.config['SECRET_KEY'] = 'your_secret_key_here'  # V produkci použijte bezpečný tajný klíč
 db.init_app(app)
