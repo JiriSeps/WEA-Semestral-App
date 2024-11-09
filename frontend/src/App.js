@@ -21,12 +21,14 @@ function App() {
   const [searchQueries, setSearchQueries] = useState({
     title: '',
     author: '',
-    isbn: ''
+    isbn: '',
+    genres: []
   });
   const [currentSearchQueries, setCurrentSearchQueries] = useState({
     title: '',
     author: '',
-    isbn: ''
+    isbn: '',
+    genres: []
   });
   const [language, setLanguage] = useState('cs');
   const [user, setUser] = useState(null);
@@ -49,9 +51,10 @@ function App() {
       per_page: 25,
       title: queries.title,
       author: queries.author,
-      isbn: queries.isbn
+      isbn: queries.isbn,
+      genres: queries.genres ? queries.genres.join(';') : ''
     });
-
+  
     axios.get(`http://localhost:8007/api/books?${queryParams.toString()}`)
       .then(response => {
         setBooks(response.data.books);
@@ -98,12 +101,14 @@ function App() {
     setSearchQueries({
       title: '',
       author: '',
-      isbn: ''
+      isbn: '',
+      genres: []
     });
     setCurrentSearchQueries({
       title: '',
       author: '',
-      isbn: ''
+      isbn: '',
+      genres: []
     });
     setCurrentPage(1);
   };

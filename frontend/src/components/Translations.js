@@ -39,7 +39,9 @@ export const translations = {
         loginToComment: "Pro přidání komentáře se musíte přihlásit",
         noComments: "Zatím žádné komentáře",
         errorLoadingComments: "Chyba při načítání komentářů",
-        errorAddingComment: "Chyba při přidávání komentáře"
+        errorAddingComment: "Chyba při přidávání komentáře",
+        genres: 'Žánry:',
+        selected: 'vybráno'
     },
     en: {
         title: "Book Store",
@@ -81,6 +83,8 @@ export const translations = {
         loginToComment: "Please log in to add a comment",
         noComments: "No comments yet",
         errorLoadingComments: "Error loading comments",
-        errorAddingComment: "Error adding comment"
+        errorAddingComment: "Error adding comment",
+        genres: 'Genres:',
+        selected: 'selected'
     }
 };

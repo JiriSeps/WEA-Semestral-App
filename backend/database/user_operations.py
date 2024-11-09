@@ -1,4 +1,4 @@
-from user import db, User
+from database.user import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
 
 def create_user(username, password, name):

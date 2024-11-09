@@ -1,6 +1,8 @@
 import csv
 import os
-from backend.database.book import db, Book
+
+from sqlalchemy import or_
+from database.book import db, Book
 from sqlalchemy.exc import SQLAlchemyError
 
 # Funkce pro načtení mockovaných dat z CSV souboru
@@ -118,8 +120,7 @@ def get_all_books(page=1, per_page=25):
         print(f"Error getting all books: {str(e)}")
         return None, 0
 
-# Funkce pro vyhledávání knih
-def search_books(title=None, authors=None, isbn=None, page=1, per_page=25):
+def search_books(title=None, authors=None, isbn=None, genres=None, page=1, per_page=25):
     try:
         query = Book.query
 
@@ -127,21 +128,24 @@ def search_books(title=None, authors=None, isbn=None, page=1, per_page=25):
             query = query.filter(Book.Title.ilike(f'%{title}%'))
         
         if authors:
-            # Split authors by comma and search for each
-            author_terms = [author.strip() for author in authors.split(',')]
-            author_filters = []
-            for author in author_terms:
-                author_filters.append(Book.Author.ilike(f'%{author}%'))
+            author_terms = [author.strip() for author in authors.split(';')]
+            author_filters = [Book.Author.ilike(f'%{author}%') for author in author_terms]
             if author_filters:
-                query = query.filter(db.or_(*author_filters))
+                query = query.filter(or_(*author_filters))
         
         if isbn:
             query = query.filter(
-                db.or_(
+                or_(
                     Book.ISBN10.ilike(f'%{isbn}%'),
                     Book.ISBN13.ilike(f'%{isbn}%')
                 )
             )
+        
+        if genres:
+            genre_terms = [genre.strip() for genre in genres.split(';')]
+            genre_filters = [Book.Genres.ilike(f'%{genre}%') for genre in genre_terms]
+            if genre_filters:
+                query = query.filter(or_(*genre_filters))
 
         # Execute query with pagination
         paginated_books = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -149,3 +153,30 @@ def search_books(title=None, authors=None, isbn=None, page=1, per_page=25):
     except SQLAlchemyError as e:
         print(f"Error searching books: {str(e)}")
         return None, 0
+
+    
+def get_all_unique_genres():
+    try:
+        # Získej všechny neprázdné žánry z databáze
+        books_with_genres = Book.query.filter(
+            Book.Genres.isnot(None),
+            Book.Genres != ''
+        ).with_entities(Book.Genres).all()
+        
+        # Set pro uložení unikátních žánrů
+        unique_genres = set()
+        
+        # Projdi všechny knihy a jejich žánry
+        for book in books_with_genres:
+            # Předpokládáme, že žánry jsou odděleny čárkou
+            if book.Genres:
+                # Rozdělení žánrů a odstranění mezer
+                genres = [genre.strip() for genre in book.Genres.split(';')]
+                # Přidání do setu (automaticky odstraní duplikáty)
+                unique_genres.update(genres)
+        
+        # Převeď set na seřazený seznam
+        return sorted(list(unique_genres))
+    except SQLAlchemyError as e:
+        print(f"Error getting unique genres: {str(e)}")
+        return []
