@@ -6,11 +6,12 @@ const BookDetail = ({
   translations, 
   language, 
   onBackToList,
-  user // Add user prop
+  user
 }) => {
   const [book, setBook] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
 
   React.useEffect(() => {
     const fetchBookDetail = async () => {
@@ -30,6 +31,36 @@ const BookDetail = ({
 
     fetchBookDetail();
   }, [isbn]);
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      // Můžeme přidat notifikaci že je potřeba se přihlásit
+      return;
+    }
+
+    setIsFavoriteLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8007/api/favorites/${isbn}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle favorite');
+      }
+
+      // Aktualizujeme stav knihy s novým stavem oblíbenosti
+      setBook(prev => ({
+        ...prev,
+        is_favorite: !prev.is_favorite
+      }));
+      
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsFavoriteLoading(false);
+    }
+  };
 
   if (loading) {
     return <div className="loading-message">{translations[language].loading}</div>;
@@ -55,7 +86,26 @@ const BookDetail = ({
       <div className="book-card">
         <div className="book-content">
           <div className="book-header">
-            <h1 className="book-title">{book.Title}</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="book-title">{book.Title}</h1>
+              {user && (
+                <button 
+                  onClick={toggleFavorite}
+                  disabled={isFavoriteLoading}
+                  className={`favorite-button p-2 rounded-full transition-colors ${
+                    book.is_favorite 
+                      ? 'bg-red-100 hover:bg-red-200' 
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                  aria-label={book.is_favorite ? translations[language].removeFromFavorites : translations[language].addToFavorites}
+                >
+                  <span className={`text-2xl ${book.is_favorite ? 'text-red-500' : 'text-gray-400'}`}>
+                    ❤️
+                  </span>
+                </button>
+              )}
+            </div>
+            
             {book.Cover_Image && (
               <div className="book-cover-container">
                 <img
@@ -107,7 +157,6 @@ const BookDetail = ({
           </div>
         </div>
         
-        {/* Add Comments Section */}
         <BookComments 
           isbn={book.ISBN10} 
           translations={translations} 

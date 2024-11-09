@@ -41,7 +41,9 @@ export const translations = {
         errorLoadingComments: "Chyba při načítání komentářů",
         errorAddingComment: "Chyba při přidávání komentáře",
         genres: 'Žánry:',
-        selected: 'vybráno'
+        selected: 'vybráno',
+        addToFavorites: "Přidat do oblíbených",
+        removeFromFavorites: "Odebrat z oblíbených"
     },
     en: {
         title: "Book Store",
@@ -85,6 +87,8 @@ export const translations = {
         errorLoadingComments: "Error loading comments",
         errorAddingComment: "Error adding comment",
         genres: 'Genres:',
-        selected: 'selected'
+        selected: 'selected',
+        addToFavorites: "Add to favorites",
+        removeFromFavorites: "Remove from favorites"
     }
 };

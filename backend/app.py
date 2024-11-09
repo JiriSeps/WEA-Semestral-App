@@ -15,6 +15,7 @@ from database.user import User
 from database.book_operations import get_all_books, search_books, add_book, get_all_unique_genres
 from database.comment_operations import add_comment, get_comments_for_book, delete_comment
 from database.user_operations import create_user, authenticate_user
+from database.favorite_operations import toggle_favorite, get_user_favorite_books, is_book_favorite
 
 def create_app():
     app = Flask(__name__)
@@ -131,6 +132,12 @@ def get_book_endpoint(isbn):
             app.logger.warning('Kniha s ISBN %s nebyla nalezena', isbn)
             return jsonify({'error': 'Kniha nebyla nalezena'}), 404
             
+        # Zjistíme, zda je kniha oblíbená pro přihlášeného uživatele
+        is_favorite = False
+        user_id = session.get('user_id')
+        if user_id:
+            is_favorite, _ = is_book_favorite(user_id, isbn)
+            
         book_data = {
             'ISBN10': book.ISBN10,
             'ISBN13': book.ISBN13,
@@ -143,6 +150,7 @@ def get_book_endpoint(isbn):
             'Number_of_Pages': book.Number_of_Pages,
             'Average_Customer_Rating': book.Average_Customer_Rating,
             'Number_of_Ratings': book.Number_of_Ratings,
+            'is_favorite': is_favorite  # Přidáno
         }
         
         app.logger.info('Úspěšně získán detail knihy %s', isbn)
@@ -227,6 +235,79 @@ def get_user():
                 }
             }), 200
     return jsonify({'error': 'Uživatel není přihlášen'}), 401
+
+@app.route('/api/favorites', methods=['GET'])
+def get_favorite_books_endpoint():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+        
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    
+    books, total, error = get_user_favorite_books(user_id, page, per_page)
+    
+    if books is None:
+        app.logger.error('Chyba při získávání oblíbených knih: %s', error)
+        return jsonify({'error': error}), 400
+        
+    books_data = [{
+        'ISBN10': book.ISBN10,
+        'ISBN13': book.ISBN13,
+        'Title': book.Title,
+        'Author': book.Author,
+        'Genres': book.Genres,
+        'Cover_Image': book.Cover_Image,
+        'Description': book.Description,
+        'Year_of_Publication': book.Year_of_Publication,
+        'Number_of_Pages': book.Number_of_Pages,
+        'Average_Customer_Rating': book.Average_Customer_Rating,
+        'Number_of_Ratings': book.Number_of_Ratings,
+    } for book in books]
+    
+    return jsonify({
+        'books': books_data,
+        'total_books': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page
+    })
+
+@app.route('/api/favorites/<isbn>', methods=['POST'])
+def toggle_favorite_book_endpoint(isbn):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+        
+    success, message = toggle_favorite(user_id, isbn)
+    
+    if success:
+        app.logger.info('Změněn stav oblíbené knihy %s pro uživatele %s', isbn, user_id)
+        return jsonify({'message': message}), 200
+    else:
+        app.logger.warning(
+            'Nepodařilo se změnit stav oblíbené knihy %s: %s',
+            isbn, message
+        )
+        return jsonify({'error': message}), 400
+
+@app.route('/api/favorites/<isbn>/status', methods=['GET'])
+def check_favorite_status_endpoint(isbn):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+        
+    is_favorite, error = is_book_favorite(user_id, isbn)
+    
+    if error:
+        app.logger.warning(
+            'Nepodařilo se zjistit stav oblíbené knihy %s: %s',
+            isbn, error
+        )
+        return jsonify({'error': error}), 400
+        
+    return jsonify({'is_favorite': is_favorite})
+
 
 # Komentáře endpointy
 @app.route('/api/comments/<isbn>', methods=['GET'])

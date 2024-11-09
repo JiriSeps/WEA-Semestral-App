@@ -1,13 +1,21 @@
 #!/bin/bash
-# init-db.sh
+set -e
 
-# Počkáme na dostupnost databáze
-wait-for-it db:5432
+echo "Waiting for database..."
+wait-for-it db:5432 -t 60
 
-# Provedeme migrace
-flask db init || true
-flask db migrate
+echo "Running database migrations..."
+# Inicializace pouze pokud neexistuje
+if [ ! -d "migrations" ] || [ -z "$(ls -A migrations)" ]; then
+    echo "Initializing migrations directory..."
+    flask db init
+fi
+
+echo "Creating new migration..."
+flask db migrate || true
+
+echo "Applying migrations..."
 flask db upgrade
 
-# Spustíme aplikaci
-gunicorn --bind 0.0.0.0:8007 app:app
+echo "Starting Gunicorn server..."
+exec gunicorn --bind 0.0.0.0:8007 app:app
