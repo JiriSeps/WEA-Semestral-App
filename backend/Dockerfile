@@ -20,10 +20,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     && pip install gunicorn
 
-# Kopírování init skriptu a nastavení práv
-COPY init-db.sh .
-RUN chmod +x init-db.sh
-
 # Kopírování celého projektu
 COPY . .
 
@@ -32,11 +28,22 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     FLASK_APP=app.py
 
-# Vytvoření adresáře pro migrations, pokud neexistuje
+# Vytvoření adresáře pro migrations
 RUN mkdir -p migrations
 
-# Inicializace Flask-Migrate (pokud ještě není inicializován)
-RUN flask db init || true
-
-# Spuštění init skriptu při startu kontejneru
-CMD ["./init-db.sh"]
+# Spuštění aplikace a migrací v jednom příkazu
+CMD ["bash", "-c", "\
+    echo 'Waiting for database...' && \
+    wait-for-it db:5432 -t 60 && \
+    echo 'Running database migrations...' && \
+    if [ ! -d 'migrations' ] || [ -z \"$(ls -A migrations)\" ]; then \
+        echo 'Initializing migrations directory...' && \
+        flask db init; \
+    fi && \
+    echo 'Creating new migration...' && \
+    flask db migrate || true && \
+    echo 'Applying migrations...' && \
+    flask db upgrade && \
+    echo 'Starting Gunicorn server...' && \
+    exec gunicorn --bind 0.0.0.0:8007 app:app \
+"]

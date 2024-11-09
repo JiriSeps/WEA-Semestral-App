@@ -43,7 +43,16 @@ export const translations = {
         genres: 'Žánry:',
         selected: 'vybráno',
         addToFavorites: "Přidat do oblíbených",
-        removeFromFavorites: "Odebrat z oblíbených"
+        removeFromFavorites: "Odebrat z oblíbených",
+        loading: "Načítání...",
+        error: "Chyba",
+        success: "Úspěch",
+        bookNotFound: "Kniha nebyla nalezena",
+        loginRequired: "Pro tuto akci je nutné být přihlášen",
+        favoriteError: "Nepodařilo se změnit stav oblíbené knihy",
+        addedToFavorites: "Kniha byla přidána do oblíbených",
+        removedFromFavorites: "Kniha byla odebrána z oblíbených",
+        back: "Zpět",
     },
     en: {
         title: "Book Store",
@@ -89,6 +98,15 @@ export const translations = {
         genres: 'Genres:',
         selected: 'selected',
         addToFavorites: "Add to favorites",
-        removeFromFavorites: "Remove from favorites"
+        removeFromFavorites: "Remove from favorites",
+        loading: "Loading...",
+        error: "Error",
+        success: "Success",
+        bookNotFound: "Book not found",
+        loginRequired: "You need to be logged in for this action",
+        favoriteError: "Could not change state of favorite book",
+        addedToFavorites: "Book added to favorites succesfully",
+        removedFromFavorites: "Book removed from favorites succesfully",
+        back: "Back",
     }
 };
