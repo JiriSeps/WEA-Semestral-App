@@ -36,6 +36,7 @@ CMD ["bash", "-c", "\
     echo 'Waiting for database...' && \
     wait-for-it db:5432 -t 60 && \
     echo 'Running database migrations...' && \
+    PGPASSWORD=password psql -h db -U user -d mydatabase -c 'DROP TABLE IF EXISTS alembic_version;' && \
     if [ ! -d 'migrations' ] || [ -z \"$(ls -A migrations)\" ]; then \
         echo 'Initializing migrations directory...' && \
         flask db init; \
