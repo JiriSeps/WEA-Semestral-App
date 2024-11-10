@@ -46,11 +46,15 @@
 
 ---
 
-### 🛠 cv07 - Zatím nezačato
+### ✅ cv07
+- **Přidat filtrování podle žánrů** - ✅ Hotovo
+- **Synchronizace databáze** - ✅ Hotovo
+- **Umožnit přihlášeným uživatelům přidávat knihy do oblíbených** - ✅ Hotovo
+- **Umožnit přihlášeným uživatelům přidávat hodnocení knihám** - ✅ Hotovo
 
 ---
 
-### 📋 cv08 - Zatím nezačato
+### 🛠 cv08
 
 ---
 
