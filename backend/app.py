@@ -96,6 +96,7 @@ def hello_world():
 def get_books():
     """
     Získá seznam knih, buď všechny knihy nebo vyhledá specifické podle parametrů.
+    Zobrazí pouze knihy s is_visible=True.
     
     Query Parameters:
         title (str): Název knihy (volitelné).
@@ -116,45 +117,53 @@ def get_books():
     info_logger.info('Požadavek na získání knih - Stránka: %d, Počet na stránku: %d', page, per_page)
     info_logger.info('Vyhledávací parametry - Název: "%s", Autor: "%s", ISBN: "%s"', title_query, author_query, isbn_query)
 
-    if title_query or author_query or isbn_query:
-        books, total_books = search_books(
-            title=title_query,
-            authors=author_query,
-            isbn=isbn_query,
-            page=page,
-            per_page=per_page
-        )
-        info_logger.info('Vyhledávání knih - Nalezeno %d výsledků', total_books)
-    else:
-        books, total_books = get_all_books(page, per_page)
-        info_logger.info('Získání všech knih - Celkem %d knih', total_books)
+    try:
+        # Základní query s filtrem is_visible
+        base_query = Book.query.filter_by(is_visible=True)
 
-    if books is None:
-        error_logger.error('Chyba při získávání knih z databáze')
+        # Přidání vyhledávacích filtrů
+        if title_query:
+            base_query = base_query.filter(Book.Title.ilike(f'%{title_query}%'))
+        if author_query:
+            base_query = base_query.filter(Book.Author.ilike(f'%{author_query}%'))
+        if isbn_query:
+            base_query = base_query.filter((Book.ISBN10.ilike(f'%{isbn_query}%')) | 
+                                         (Book.ISBN13.ilike(f'%{isbn_query}%')))
+
+        # Získání celkového počtu výsledků
+        total_books = base_query.count()
+
+        # Stránkování
+        books = base_query.order_by(Book.Title).offset((page - 1) * per_page).limit(per_page).all()
+
+        books_data = [{
+            'ISBN10': book.ISBN10,
+            'ISBN13': book.ISBN13,
+            'Title': book.Title,
+            'Author': book.Author,
+            'Genres': book.Genres,
+            'Cover_Image': book.Cover_Image,
+            'Description': book.Description,
+            'Year_of_Publication': book.Year_of_Publication,
+            'Number_of_Pages': book.Number_of_Pages,
+            'Average_Rating': book.Average_Rating,
+            'Number_of_Ratings': book.Number_of_Ratings,
+        } for book in books]
+
+        info_logger.info('Nalezeno %d knih', total_books)
+        
+        return jsonify({
+            'books': books_data,
+            'total_books': total_books,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total_books + per_page - 1) // per_page
+        })
+
+    except Exception as e:
+        error_logger.error('Chyba při získávání knih: %s', str(e))
         return jsonify({'error': 'Nepodařilo se získat knihy'}), 500
-
-    books_data = [{
-        'ISBN10': book.ISBN10,
-        'ISBN13': book.ISBN13,
-        'Title': book.Title,
-        'Author': book.Author,
-        'Genres': book.Genres,
-        'Cover_Image': book.Cover_Image,
-        'Description': book.Description,
-        'Year_of_Publication': book.Year_of_Publication,
-        'Number_of_Pages': book.Number_of_Pages,
-        'Average_Rating': book.Average_Rating,
-        'Number_of_Ratings': book.Number_of_Ratings,
-    } for book in books]
-
-    return jsonify({
-        'books': books_data,
-        'total_books': total_books,
-        'page': page,
-        'per_page': per_page,
-        'total_pages': (total_books + per_page - 1) // per_page
-    })
-
+    
 @app.route('/api/fetch_books', methods=['POST'])
 def fetch_books():
     """
@@ -247,10 +256,10 @@ def get_book_endpoint(isbn):
     try:
         book = Book.query.filter(
             (Book.ISBN10 == isbn) | (Book.ISBN13 == isbn)
-        ).first()
+        ).filter_by(is_visible=True).first()
         
         if not book:
-            app.logger.warning('Kniha s ISBN %s nebyla nalezena', isbn)
+            app.logger.warning('Kniha s ISBN %s nebyla nalezena nebo není viditelná', isbn)
             return jsonify({'error': 'Kniha nebyla nalezena'}), 404
             
         # Zjistíme, zda je kniha oblíbená pro přihlášeného uživatele
@@ -271,7 +280,7 @@ def get_book_endpoint(isbn):
             'Number_of_Pages': book.Number_of_Pages,
             'Average_Rating': book.Average_Rating,
             'Number_of_Ratings': book.Number_of_Ratings,
-            'is_favorite': is_favorite  # Přidáno
+            'is_favorite': is_favorite
         }
         
         app.logger.info('Úspěšně získán detail knihy %s', isbn)
