@@ -5,7 +5,8 @@ export const BookList = ({
   books, 
   translations, 
   language, 
-  onBookSelect
+  onBookSelect,
+  showFavorites  // Nový prop
 }) => (
   <div className="table-container">
     <table>
@@ -32,6 +33,8 @@ export const BookList = ({
             genres={book.Genres}
             yearOfPublication={book.Year_of_Publication}
             onBookSelect={onBookSelect}
+            isVisible={book.is_visible}  // Nový prop
+            showFavorites={showFavorites}  // Předáváme dál do Book komponenty
           />
         ))}
       </tbody>

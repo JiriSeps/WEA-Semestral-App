@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Book = ({ 
   coverImage, 
   title, 
@@ -11,16 +9,23 @@ const Book = ({
   numberOfPages, 
   averageRating, 
   numberOfRatings,
-  onBookSelect  // Nový prop
+  onBookSelect,
+  isVisible,
+  showFavorites
 }) => {
   const handleClick = () => {
+    if (showFavorites && !isVisible) return;
     onBookSelect(isbn10 || isbn13);
   };
+
+  const rowClasses = [
+    showFavorites && !isVisible ? 'book-unavailable' : '',
+  ].filter(Boolean).join(' ');
 
   return (
     <tr 
       onClick={handleClick} 
-      className="cursor-pointer hover:bg-gray-50 transition-colors"
+      className={rowClasses}
     >
       <td>
         {coverImage && (

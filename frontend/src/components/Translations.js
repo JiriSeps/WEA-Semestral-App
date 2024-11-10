@@ -53,6 +53,9 @@ export const translations = {
         addedToFavorites: "Kniha byla přidána do oblíbených",
         removedFromFavorites: "Kniha byla odebrána z oblíbených",
         back: "Zpět",
+        allBooks: "Všechny knihy",
+        favoriteBooks: "Oblíbené knihy",
+        noFavoriteBooks: "Nemáte žádné oblíbené knihy"
     },
     en: {
         title: "Book Store",
@@ -108,5 +111,8 @@ export const translations = {
         addedToFavorites: "Book added to favorites succesfully",
         removedFromFavorites: "Book removed from favorites succesfully",
         back: "Back",
+        allBooks: "All Books",
+        favoriteBooks: "Favorite Books",
+        noFavoriteBooks: "You don't have any favorite books"
     }
 };

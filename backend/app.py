@@ -9,7 +9,7 @@ from flask_migrate import Migrate
 # Import modelů a databáze
 from database import db
 from database.book import Book
-from database.user import User
+from database.user import User, favorite_books
 from database.rating import Rating
 
 # Import operací
@@ -100,10 +100,22 @@ def get_books():
     author_query = request.args.get('author', '')
     isbn_query = request.args.get('isbn', '')
     genres_query = request.args.get('genres', '')
+    show_favorites = request.args.get('favorites', '').lower() == 'true'  # Nový parametr
+    user_id = session.get('user_id')  # Získáme ID uživatele
 
     try:
-        base_query = Book.query.filter_by(is_visible=True)
+        # Základní query se mění podle toho, jestli chceme oblíbené nebo všechny knihy
+        if show_favorites and user_id:
+            base_query = db.session.query(Book).join(
+                favorite_books,
+                Book.ISBN10 == favorite_books.c.book_isbn10
+            ).filter(
+                favorite_books.c.user_id == user_id
+            )
+        else:
+            base_query = Book.query.filter_by(is_visible=True)
 
+        # Zbytek logiky zůstává stejný
         if title_query:
             base_query = base_query.filter(Book.Title.ilike(f'%{title_query}%'))
         if author_query:
@@ -112,11 +124,9 @@ def get_books():
             base_query = base_query.filter((Book.ISBN10.ilike(f'%{isbn_query}%')) | 
                                          (Book.ISBN13.ilike(f'%{isbn_query}%')))
         
-        # Improved genre filtering
         if genres_query:
             genre_terms = [genre.strip() for genre in genres_query.split(';') if genre.strip()]
             if genre_terms:
-                # Create a filter for each genre and combine them with AND
                 for genre in genre_terms:
                     base_query = base_query.filter(Book.Genres.ilike(f'%{genre}%'))
 
@@ -135,6 +145,7 @@ def get_books():
             'Number_of_Pages': book.Number_of_Pages,
             'Average_Rating': book.Average_Rating,
             'Number_of_Ratings': book.Number_of_Ratings,
+            'is_visible': book.is_visible if show_favorites else True  # Přidáme informaci o viditelnosti pro oblíbené
         } for book in books]
 
         return jsonify({
@@ -235,6 +246,62 @@ def fetch_books():
         db.session.rollback()
         error_logger.error('Výjimka při zpracování knih: %s', str(e))
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/books/favorites')
+def get_favorite_books():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 25, type=int)
+    title_query = request.args.get('title', '')
+    author_query = request.args.get('author', '')
+    isbn_query = request.args.get('isbn', '')
+    genres_query = request.args.get('genres', '')
+
+    try:
+        books, total, error = get_user_favorite_books(user_id, page, per_page)
+        
+        if error:
+            return jsonify({'error': error}), 500
+            
+        if not books:
+            return jsonify({
+                'books': [],
+                'total_books': 0,
+                'page': page,
+                'per_page': per_page,
+                'total_pages': 0
+            })
+
+        books_data = [{
+            'ISBN10': book['book'].ISBN10,
+            'ISBN13': book['book'].ISBN13,
+            'Title': book['book'].Title,
+            'Author': book['book'].Author,
+            'Genres': book['book'].Genres,
+            'Cover_Image': book['book'].Cover_Image,
+            'Description': book['book'].Description,
+            'Year_of_Publication': book['book'].Year_of_Publication,
+            'Number_of_Pages': book['book'].Number_of_Pages,
+            'Average_Rating': book['book'].Average_Rating,
+            'Number_of_Ratings': book['book'].Number_of_Ratings,
+            'is_visible': book['is_visible']  # Přidáváme informaci o viditelnosti
+        } for book in books]
+
+        return jsonify({
+            'books': books_data,
+            'total_books': total,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total + per_page - 1) // per_page
+        })
+
+    except Exception as e:
+        error_logger.error('Chyba při získávání oblíbených knih: %s', str(e))
+        return jsonify({'error': 'Nepodařilo se získat oblíbené knihy'}), 500
+    
 
 @app.route('/api/books/<isbn>')
 def get_book_endpoint(isbn):

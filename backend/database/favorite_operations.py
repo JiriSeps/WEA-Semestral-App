@@ -57,30 +57,30 @@ def toggle_favorite(user_id, isbn):
         return False, f"Chyba při změně stavu oblíbené knihy: {str(e)}"
 
 def get_user_favorite_books(user_id, page=1, per_page=25):
-    """
-    Získá seznam oblíbených knih uživatele s stránkováním
-    """
     try:
-        # Kontrola existence uživatele
         user = User.query.get(user_id)
         if not user:
             return None, 0, "Uživatel nenalezen"
         
-        # Dotaz na oblíbené knihy s připojením tabulky knih
-        query = db.session.query(Book).join(
+        # Přidáme is_visible do výběru
+        query = db.session.query(Book, Book.is_visible).join(
             favorite_books,
             Book.ISBN10 == favorite_books.c.book_isbn10
         ).filter(
             favorite_books.c.user_id == user_id
         )
         
-        # Celkový počet oblíbených knih
         total = query.count()
         
-        # Stránkování
-        books = query.order_by(favorite_books.c.added_at.desc()).offset(
+        results = query.order_by(favorite_books.c.added_at.desc()).offset(
             (page - 1) * per_page
         ).limit(per_page).all()
+        
+        # Upravíme výstup, aby obsahoval informaci o viditelnosti
+        books = [{
+            'book': book,
+            'is_visible': is_visible
+        } for book, is_visible in results]
         
         return books, total, None
     except Exception as e:

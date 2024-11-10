@@ -36,12 +36,13 @@ function App() {
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [currentView, setCurrentView] = useState('list');
   const [selectedBookIsbn, setSelectedBookIsbn] = useState(null);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   // Efekty
   useEffect(() => {
     fetchBooks(currentPage, currentSearchQueries);
     checkLoggedInUser();
-  }, [currentPage, currentSearchQueries]);
+  }, [currentPage, currentSearchQueries, showFavorites]);
 
   // API volání
   const fetchBooks = (page, queries) => {
@@ -52,7 +53,8 @@ function App() {
       title: queries.title,
       author: queries.author,
       isbn: queries.isbn,
-      genres: queries.genres ? queries.genres.join(';') : ''
+      genres: queries.genres ? queries.genres.join(';') : '',
+      favorites: showFavorites  // Přidáme parametr pro oblíbené
     });
   
     axios.get(`http://localhost:8007/api/books?${queryParams.toString()}`)
@@ -74,6 +76,7 @@ function App() {
       setUser(response.data.user);
     } catch (error) {
       console.error("Error checking logged in user", error);
+      setShowFavorites(false); // Přepnout zpět na všechny knihy pokud uživatel není přihlášen
     }
   };
 
@@ -113,6 +116,12 @@ function App() {
     setCurrentPage(1);
   };
 
+  const handleToggleFavorites = (showFav) => {
+    setShowFavorites(showFav);
+    setCurrentPage(1);
+    handleClearSearch();
+  };
+
   const toggleLanguage = () => {
     setLanguage(prev => (prev === 'cs' ? 'en' : 'cs'));
   };
@@ -132,6 +141,7 @@ function App() {
     try {
       await axios.post('http://localhost:8007/api/logout');
       setUser(null);
+      setShowFavorites(false); // Přepnout zpět na všechny knihy při odhlášení
     } catch (error) {
       console.error("Error logging out", error);
     }
@@ -209,6 +219,9 @@ function App() {
             currentSearchQueries={currentSearchQueries}
             translations={translations}
             language={language}
+            showFavorites={showFavorites}
+            onToggleFavorites={handleToggleFavorites}
+            user={user}
           />
 
           {books.length > 0 ? (
@@ -218,6 +231,8 @@ function App() {
                 translations={translations}
                 language={language}
                 onBookSelect={handleBookSelect}
+                user={user}
+                showFavorites={showFavorites}
               />
               <Pagination 
                 currentPage={currentPage}
@@ -228,7 +243,11 @@ function App() {
               />
             </>
           ) : (
-            <div className="no-results">{translations[language].noResults}</div>
+            <div className="no-results">
+              {showFavorites 
+                ? translations[language].noFavoriteBooks 
+                : translations[language].noResults}
+            </div>
           )}
         </>
       )}
@@ -239,7 +258,9 @@ function App() {
           translations={translations}
           language={language}
           onBackToList={handleBackToList}
-          user={user} 
+          user={user}
+          showFavorites={showFavorites}
+          onToggleFavorites={handleToggleFavorites}
         />
       )}
     </div>

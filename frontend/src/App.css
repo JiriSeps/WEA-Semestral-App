@@ -786,3 +786,71 @@ tr:hover {
     min-height: 80px;
   }
 }
+
+/* View Toggle Buttons */
+.view-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+  background-color: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.view-button {
+  padding: 12px 24px;
+  border: 2px solid #007bff;
+  border-radius: 6px;
+  background-color: white;
+  color: #007bff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+  font-size: 14px;
+}
+
+.view-button:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.view-button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.view-button.active:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Responzivita pro menší obrazovky */
+@media (max-width: 1200px) {
+  .view-toggle {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .view-button {
+    width: 100%;
+  }
+}
+
+
+/* Styles pro neviditelné knihy */
+tr.book-unavailable {
+  background-color: #ffdddd !important; /* Sytější červená */
+}
+
+tr.book-unavailable td {
+  opacity: 0.85; /* Zvýšená opacity oproti předchozí verzi */
+  color: #666; /* Tmavší text pro lepší čitelnost */
+}
+
+tr.book-unavailable:hover {
+  background-color: #ffcccc !important; /* Ještě sytější červená při hoveru */
+  cursor: not-allowed;
+}

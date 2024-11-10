@@ -8,7 +8,10 @@ export const SearchForm = ({
   handleClearSearch, 
   currentSearchQueries, 
   translations, 
-  language 
+  language,
+  showFavorites,  // nový prop
+  onToggleFavorites,  // nový prop
+  user  // nový prop pro kontrolu, zda je uživatel přihlášený
 }) => {
   const [genres, setGenres] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +48,24 @@ export const SearchForm = ({
   return (
     <div className="search-container">
       <form onSubmit={handleSearchSubmit}>
+        <div className="view-toggle">
+          <button
+            type="button"
+            className={`view-button ${!showFavorites ? 'active' : ''}`}
+            onClick={() => onToggleFavorites(false)}
+          >
+            {translations[language].allBooks}
+          </button>
+          {user && (
+            <button
+              type="button"
+              className={`view-button ${showFavorites ? 'active' : ''}`}
+              onClick={() => onToggleFavorites(true)}
+            >
+              {translations[language].favoriteBooks}
+            </button>
+          )}
+        </div>
         <div className="search-fields">
           <div className="search-field">
             <label>{translations[language].searchBook}</label>
