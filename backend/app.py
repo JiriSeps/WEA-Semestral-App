@@ -94,34 +94,16 @@ def hello_world():
 # Knihy endpointy
 @app.route('/api/books')
 def get_books():
-    """
-    Získá seznam knih, buď všechny knihy nebo vyhledá specifické podle parametrů.
-    Zobrazí pouze knihy s is_visible=True.
-    
-    Query Parameters:
-        title (str): Název knihy (volitelné).
-        author (str): Autor knihy (volitelné).
-        isbn (str): ISBN knihy (volitelné).
-        page (int): Číslo stránky (výchozí: 1).
-        per_page (int): Počet knih na stránku (výchozí: 25).
-
-    Returns:
-        dict: JSON objekt obsahující seznam knih a další metadata stránkování.
-    """
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     title_query = request.args.get('title', '')
     author_query = request.args.get('author', '')
     isbn_query = request.args.get('isbn', '')
-
-    info_logger.info('Požadavek na získání knih - Stránka: %d, Počet na stránku: %d', page, per_page)
-    info_logger.info('Vyhledávací parametry - Název: "%s", Autor: "%s", ISBN: "%s"', title_query, author_query, isbn_query)
+    genres_query = request.args.get('genres', '')
 
     try:
-        # Základní query s filtrem is_visible
         base_query = Book.query.filter_by(is_visible=True)
 
-        # Přidání vyhledávacích filtrů
         if title_query:
             base_query = base_query.filter(Book.Title.ilike(f'%{title_query}%'))
         if author_query:
@@ -129,11 +111,16 @@ def get_books():
         if isbn_query:
             base_query = base_query.filter((Book.ISBN10.ilike(f'%{isbn_query}%')) | 
                                          (Book.ISBN13.ilike(f'%{isbn_query}%')))
+        
+        # Improved genre filtering
+        if genres_query:
+            genre_terms = [genre.strip() for genre in genres_query.split(';') if genre.strip()]
+            if genre_terms:
+                # Create a filter for each genre and combine them with AND
+                for genre in genre_terms:
+                    base_query = base_query.filter(Book.Genres.ilike(f'%{genre}%'))
 
-        # Získání celkového počtu výsledků
         total_books = base_query.count()
-
-        # Stránkování
         books = base_query.order_by(Book.Title).offset((page - 1) * per_page).limit(per_page).all()
 
         books_data = [{
@@ -150,8 +137,6 @@ def get_books():
             'Number_of_Ratings': book.Number_of_Ratings,
         } for book in books]
 
-        info_logger.info('Nalezeno %d knih', total_books)
-        
         return jsonify({
             'books': books_data,
             'total_books': total_books,

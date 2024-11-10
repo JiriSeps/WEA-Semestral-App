@@ -157,10 +157,11 @@ def search_books(title=None, authors=None, isbn=None, genres=None, page=1, per_p
     
 def get_all_unique_genres():
     try:
-        # Získej všechny neprázdné žánry z databáze
+        # Získej všechny neprázdné žánry z viditelných knih
         books_with_genres = Book.query.filter(
             Book.Genres.isnot(None),
-            Book.Genres != ''
+            Book.Genres != '',
+            Book.is_visible == True  # Přidán filtr na viditelné knihy
         ).with_entities(Book.Genres).all()
         
         # Set pro uložení unikátních žánrů
@@ -168,11 +169,10 @@ def get_all_unique_genres():
         
         # Projdi všechny knihy a jejich žánry
         for book in books_with_genres:
-            # Předpokládáme, že žánry jsou odděleny čárkou
             if book.Genres:
-                # Rozdělení žánrů a odstranění mezer
-                genres = [genre.strip() for genre in book.Genres.split(';')]
-                # Přidání do setu (automaticky odstraní duplikáty)
+                # Rozdělení žánrů podle středníku a odstranění mezer
+                genres = [genre.strip() for genre in book.Genres.split(';') if genre.strip()]
+                # Přidání neprázdných žánrů do setu (automaticky odstraní duplikáty)
                 unique_genres.update(genres)
         
         # Převeď set na seřazený seznam
