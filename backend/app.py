@@ -10,12 +10,35 @@ from flask_migrate import Migrate
 from database import db
 from database.book import Book
 from database.user import User
+from database.rating import Rating
 
 # Import operací
 from database.book_operations import get_all_books, search_books, add_book, get_all_unique_genres
 from database.comment_operations import add_comment, get_comments_for_book, delete_comment
 from database.user_operations import create_user, authenticate_user
 from database.favorite_operations import toggle_favorite, get_user_favorite_books, is_book_favorite
+from database.rating_operations import add_or_update_rating, get_user_rating
+
+# Zajištění existence adresáře pro logy
+log_dir = os.path.join(os.path.dirname(__file__), 'logs')
+os.makedirs(log_dir, exist_ok=True)
+
+# Konfigurace logování
+info_handler = RotatingFileHandler(os.path.join(log_dir, 'info.log'), maxBytes=5*1024*1024, backupCount=5)
+info_handler.setLevel(logging.INFO)
+info_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+error_handler = RotatingFileHandler(os.path.join(log_dir, 'error.log'), maxBytes=5*1024*1024, backupCount=5)
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+info_logger = logging.getLogger('info_logger')
+info_logger.setLevel(logging.INFO)
+info_logger.addHandler(info_handler)
+
+error_logger = logging.getLogger('error_logger')
+error_logger.setLevel(logging.ERROR)
+error_logger.addHandler(error_handler)
 
 def create_app():
     app = Flask(__name__)
@@ -70,33 +93,44 @@ def hello_world():
 
 # Knihy endpointy
 @app.route('/api/books')
-def get_books_endpoint():
+def get_books():
+    """
+    Získá seznam knih, buď všechny knihy nebo vyhledá specifické podle parametrů.
+    
+    Query Parameters:
+        title (str): Název knihy (volitelné).
+        author (str): Autor knihy (volitelné).
+        isbn (str): ISBN knihy (volitelné).
+        page (int): Číslo stránky (výchozí: 1).
+        per_page (int): Počet knih na stránku (výchozí: 25).
+
+    Returns:
+        dict: JSON objekt obsahující seznam knih a další metadata stránkování.
+    """
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     title_query = request.args.get('title', '')
     author_query = request.args.get('author', '')
     isbn_query = request.args.get('isbn', '')
-    genres_query = request.args.get('genres', '')
 
-    app.logger.info(
-        'Požadavek na získání knih - Stránka: %d, Počet na stránku: %d', 
-        page, per_page
-    )
+    info_logger.info('Požadavek na získání knih - Stránka: %d, Počet na stránku: %d', page, per_page)
+    info_logger.info('Vyhledávací parametry - Název: "%s", Autor: "%s", ISBN: "%s"', title_query, author_query, isbn_query)
 
-    if title_query or author_query or isbn_query or genres_query:
+    if title_query or author_query or isbn_query:
         books, total_books = search_books(
             title=title_query,
             authors=author_query,
             isbn=isbn_query,
-            genres=genres_query,
             page=page,
             per_page=per_page
         )
+        info_logger.info('Vyhledávání knih - Nalezeno %d výsledků', total_books)
     else:
         books, total_books = get_all_books(page, per_page)
+        info_logger.info('Získání všech knih - Celkem %d knih', total_books)
 
     if books is None:
-        app.logger.error('Chyba při získávání knih z databáze')
+        error_logger.error('Chyba při získávání knih z databáze')
         return jsonify({'error': 'Nepodařilo se získat knihy'}), 500
 
     books_data = [{
@@ -109,7 +143,7 @@ def get_books_endpoint():
         'Description': book.Description,
         'Year_of_Publication': book.Year_of_Publication,
         'Number_of_Pages': book.Number_of_Pages,
-        'Average_Customer_Rating': book.Average_Customer_Rating,
+        'Average_Rating': book.Average_Rating,
         'Number_of_Ratings': book.Number_of_Ratings,
     } for book in books]
 
@@ -120,6 +154,93 @@ def get_books_endpoint():
         'per_page': per_page,
         'total_pages': (total_books + per_page - 1) // per_page
     })
+
+@app.route('/api/fetch_books', methods=['POST'])
+def fetch_books():
+    """
+    Přidá nové knihy do databáze z příchozího JSON požadavku.
+    Nejprve nastaví všem knihám viditelnost na false, poté aktivuje pouze knihy z příchozího souboru.
+
+    JSON Body (pole knih):
+        - isbn10 (str): ISBN10 číslo knihy.
+        - isbn13 (str): ISBN13 číslo knihy.
+        - title (str): Název knihy.
+        - author (str): Autor knihy.
+        - genres (str): Žánry knihy (oddělené středníkem).
+        - cover_image (str): URL obrázku obálky knihy.
+        - description (str): Popis knihy.
+        - year_of_publication (int): Rok vydání knihy.
+        - number_of_pages (int): Počet stránek knihy.
+        - average_rating (float): Průměrné hodnocení knihy zákazníky.
+        - number_of_ratings (int): Počet hodnocení zákazníky.
+
+    Returns:
+        dict: JSON objekt s informací o úspěšnosti operace nebo chybová zpráva.
+    """
+    info_logger.info('Zahájeno přijímání dat knih od klienta')
+    try:
+        books_data = request.get_json()
+        if not books_data:
+            error_logger.error('Chybějící data v požadavku')
+            return jsonify({'error': 'Chybějící data v požadavku'}), 400
+
+        # Nejprve nastavíme všem knihám viditelnost na false
+        Book.query.update({Book.is_visible: False}, synchronize_session=False)
+        
+        updated_books = 0
+        new_books = 0
+        
+        for book in books_data:
+            isbn10 = book.get('isbn10')
+            if not isbn10:
+                continue
+                
+            existing_book = Book.query.get(isbn10)
+            
+            if existing_book:
+                # Aktualizujeme existující knihu a nastavíme ji jako viditelnou
+                existing_book.is_visible = True
+                existing_book.ISBN10 = isbn10
+                existing_book.ISBN13 = book.get('isbn13')
+                existing_book.Title = book.get('title')
+                existing_book.Author = book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', []))
+                existing_book.Genres = book.get('categories')
+                existing_book.Cover_Image = book.get('thumbnail')
+                existing_book.Description = book.get('description')
+                existing_book.Year_of_Publication = book.get('published_year')
+                existing_book.Number_of_Pages = book.get('num_pages')
+                existing_book.Average_Rating = book.get('average_rating')
+                existing_book.Number_of_Ratings = book.get('ratings_count')
+                updated_books += 1
+            else:
+                # Přidáme novou knihu
+                new_book = Book(
+                    ISBN10=isbn10,
+                    ISBN13=book.get('isbn13'),
+                    Title=book.get('title'),
+                    Author=book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', [])),
+                    Genres=book.get('categories'),
+                    Cover_Image=book.get('thumbnail'),
+                    Description=book.get('description'),
+                    Year_of_Publication=book.get('published_year'),
+                    Number_of_Pages=book.get('num_pages'),
+                    Average_Rating=book.get('average_rating'),
+                    Number_of_Ratings=book.get('ratings_count'),
+                    is_visible=True
+                )
+                db.session.add(new_book)
+                new_books += 1
+
+        db.session.commit()
+        info_logger.info('Aktualizováno %d knih, přidáno %d nových knih', updated_books, new_books)
+        return jsonify({
+            'message': f'Aktualizováno {updated_books} knih, přidáno {new_books} nových knih'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        error_logger.error('Výjimka při zpracování knih: %s', str(e))
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/books/<isbn>')
 def get_book_endpoint(isbn):
@@ -148,7 +269,7 @@ def get_book_endpoint(isbn):
             'Description': book.Description,
             'Year_of_Publication': book.Year_of_Publication,
             'Number_of_Pages': book.Number_of_Pages,
-            'Average_Customer_Rating': book.Average_Customer_Rating,
+            'Average_Rating': book.Average_Rating,
             'Number_of_Ratings': book.Number_of_Ratings,
             'is_favorite': is_favorite  # Přidáno
         }
@@ -261,7 +382,7 @@ def get_favorite_books_endpoint():
         'Description': book.Description,
         'Year_of_Publication': book.Year_of_Publication,
         'Number_of_Pages': book.Number_of_Pages,
-        'Average_Customer_Rating': book.Average_Customer_Rating,
+        'Average_Rating': book.Average_Rating,
         'Number_of_Ratings': book.Number_of_Ratings,
     } for book in books]
     
@@ -378,6 +499,44 @@ def delete_book_comment_endpoint(comment_id):
             comment_id, message
         )
         return jsonify({'error': message}), 400
+    
+# Hodnocení Endpointy
+@app.route('/api/ratings/<isbn>', methods=['POST'])
+def rate_book_endpoint(isbn):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+        
+    data = request.json
+    rating = data.get('rating')
+    
+    if not rating or not isinstance(rating, int) or not (1 <= rating <= 5):
+        return jsonify({'error': 'Neplatné hodnocení'}), 400
+        
+    success, message = add_or_update_rating(user_id, isbn, rating)
+    
+    if success:
+        app.logger.info('Uživatel %s ohodnotil knihu %s hodnocením %d', user_id, isbn, rating)
+        return jsonify({'message': message}), 200
+    else:
+        app.logger.warning(
+            'Nepodařilo se přidat hodnocení ke knize %s: %s',
+            isbn, message
+        )
+        return jsonify({'error': message}), 400
+
+@app.route('/api/ratings/<isbn>', methods=['GET'])
+def get_user_rating_endpoint(isbn):
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+        
+    rating, error = get_user_rating(user_id, isbn)
+    
+    if error:
+        return jsonify({'error': error}), 400
+        
+    return jsonify({'rating': rating})
 
 # Inicializace databáze
 with app.app_context():

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import BookComments from './BookComments';
+import BookRating from './BookRating';
 
 const BookDetail = ({ 
   isbn, 
@@ -8,36 +9,37 @@ const BookDetail = ({
   onBackToList,
   user
 }) => {
-  const [book, setBook] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
-  React.useEffect(() => {
-    const fetchBookDetail = async () => {
-      try {
-        const response = await fetch(`http://localhost:8007/api/books/${isbn}`, {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          throw new Error(translations[language].bookNotFound);
-        }
-        
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        
-        setBook(data.book);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchBookDetail = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:8007/api/books/${isbn}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(translations[language].bookNotFound);
       }
-    };
+      
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      setBook(data.book);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBookDetail();
   }, [isbn, language]);
 
@@ -85,7 +87,6 @@ const BookDetail = ({
       });
     } finally {
       setIsFavoriteLoading(false);
-      // Clear status message after 3 seconds
       setTimeout(() => setStatusMessage(null), 3000);
     }
   };
@@ -194,7 +195,7 @@ const BookDetail = ({
               </div>
               <div>
                 <p className="book-detail-label">
-                  <span className="font-medium">{translations[language].averageRating}:</span> {book.Average_Customer_Rating?.toFixed(1) || '-'}
+                  <span className="font-medium">{translations[language].averageRating}:</span> {book.Average_Rating?.toFixed(1) || '-'}
                 </p>
               </div>
               <div>
@@ -203,6 +204,19 @@ const BookDetail = ({
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="book-rating-section mb-6">
+            <h3 className="text-lg font-medium mb-2">
+              {translations[language].yourRating}
+            </h3>
+            <BookRating 
+              isbn={book.ISBN10} 
+              user={user}
+              translations={translations}
+              language={language}
+              onRatingUpdate={fetchBookDetail}
+            />
           </div>
 
           <div className="book-description-section">

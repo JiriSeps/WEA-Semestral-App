@@ -36,7 +36,7 @@ def load_mock_data_to_db():
                 Description=description,
                 Year_of_Publication=year_of_publication,
                 Number_of_Pages=number_of_pages,
-                Average_Customer_Rating=average_customer_rating,
+                Average_Rating=average_customer_rating,
                 Number_of_Ratings=number_of_ratings
             )
             
@@ -52,7 +52,7 @@ def load_mock_data_to_db():
 
 # Funkce pro přidání knihy do databáze
 def add_book(isbn10, isbn13, title, author, genres=None, cover_image=None, critics_rating=None, 
-             year_of_publication=None, number_of_pages=None, average_customer_rating=None, number_of_ratings=None):
+             year_of_publication=None, number_of_pages=None, average_rating=None, number_of_ratings=None):
     try:
         new_book = Book(
             ISBN10=isbn10,
@@ -64,7 +64,7 @@ def add_book(isbn10, isbn13, title, author, genres=None, cover_image=None, criti
             Critics_Rating=critics_rating,
             Year_of_Publication=year_of_publication,
             Number_of_Pages=number_of_pages,
-            Average_Customer_Rating=average_customer_rating,
+            Average_Rating=average_rating,
             Number_of_Ratings=number_of_ratings
         )
         db.session.add(new_book)

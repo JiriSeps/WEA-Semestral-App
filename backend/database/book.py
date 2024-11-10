@@ -10,7 +10,7 @@ class Book(db.Model):
     Description = db.Column(db.Text)
     Year_of_Publication = db.Column(db.Integer)
     Number_of_Pages = db.Column(db.Integer)
-    Average_Customer_Rating = db.Column(db.Float)
+    Average_Rating = db.Column(db.Float)
     Number_of_Ratings = db.Column(db.Integer)
     is_visible = db.Column(db.Boolean, default=True)  # Přidáno pro viditelnost knih
     
