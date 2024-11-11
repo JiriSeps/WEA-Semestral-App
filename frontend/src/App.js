@@ -8,8 +8,9 @@ import { translations } from './components/Translations';
 import BookDetail from './components/BookDetail';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
+import ProfileForm from './components/ProfileForm';  // Nový import
 import './App.css';
-axios.defaults.withCredentials = true;  
+axios.defaults.withCredentials = true; 
 
 function App() {
   // Stavové proměnné
@@ -37,6 +38,7 @@ function App() {
   const [currentView, setCurrentView] = useState('list');
   const [selectedBookIsbn, setSelectedBookIsbn] = useState(null);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [showProfileForm, setShowProfileForm] = useState(false);  // Nový state
 
   // Efekty
   useEffect(() => {
@@ -87,6 +89,11 @@ function App() {
     }
   };
 
+  const handleProfileUpdate = (updatedUser) => {
+    setUser(updatedUser);
+    setShowProfileForm(false);
+  };
+
   const handleSearchChange = (field) => (event) => {
     setSearchQueries(prev => ({
       ...prev,
@@ -126,10 +133,20 @@ function App() {
     setLanguage(prev => (prev === 'cs' ? 'en' : 'cs'));
   };
 
-  const handleLogin = (userData) => {
-    setUser(userData);
-    setShowLoginForm(false);
-    setShowRegisterForm(false);
+  const handleLogin = async (userData) => {
+    try {
+      // Nejdřív nastavíme základní user data z přihlášení
+      setUser(userData);
+      
+      // Pak ihned fetchneme kompletní user data
+      const response = await axios.get('http://localhost:8007/api/user');
+      setUser(response.data.user);  // Nastavíme kompletní data
+      
+      setShowLoginForm(false);
+      setShowRegisterForm(false);
+    } catch (error) {
+      console.error("Error fetching complete user data", error);
+    }
   };
 
   const handleRegister = () => {
@@ -155,6 +172,10 @@ function App() {
   const toggleRegisterForm = () => {
     setShowRegisterForm(!showRegisterForm);
     setShowLoginForm(false);
+  };
+
+  const toggleProfileForm = () => {
+    setShowProfileForm(!showProfileForm);
   };
 
   const handleBookSelect = (isbn) => {
@@ -190,6 +211,7 @@ function App() {
         handleLogout={handleLogout}
         toggleLoginForm={toggleLoginForm}
         toggleRegisterForm={toggleRegisterForm}
+        toggleProfileForm={toggleProfileForm}  // Nová prop
         translations={translations}
       />
       
@@ -206,6 +228,16 @@ function App() {
           onRegister={handleRegister} 
           translations={translations} 
           language={language} 
+        />
+      )}
+
+      {showProfileForm && (
+        <ProfileForm 
+          onUpdate={handleProfileUpdate}
+          onClose={() => setShowProfileForm(false)}
+          translations={translations}
+          language={language}
+          userData={user}
         />
       )}
 

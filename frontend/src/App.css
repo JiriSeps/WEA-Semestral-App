@@ -854,3 +854,275 @@ tr.book-unavailable:hover {
   background-color: #ffcccc !important; /* Ještě sytější červená při hoveru */
   cursor: not-allowed;
 }
+
+
+/* ProfileForm Overlay */
+.profile-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+/* ProfileForm Container */
+.profile-form {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  margin-top: 20px;
+}
+
+/* Form Header */
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 15px;
+}
+
+.form-header h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0;
+  font-family: 'Merriweather', serif;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 25px;
+}
+
+.form-section h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* Input Fields */
+.form-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Checkbox Styles */
+.same-address-checkbox {
+  margin: 20px 0;
+}
+
+.same-address-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.same-address-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+/* Gender Selection */
+.gender-select {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.gender-select label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.gender-select input[type="radio"] {
+  width: 18px;
+  height: 18px;
+}
+
+/* Genres Section */
+.genres-section {
+  margin: 20px 0;
+}
+
+.genres-dropdown-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.3s ease;
+}
+
+.genres-dropdown-button:hover {
+  background-color: #0056b3;
+}
+
+.genres-dropdown {
+  margin-top: 5px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.genre-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 5px 0;
+  gap: 10px;
+}
+
+/* Form Select */
+.form-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+/* GDPR Consent */
+.gdpr-consent {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.gdpr-consent label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+/* Error Message */
+.error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+/* Form Buttons */
+.form-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 25px;
+}
+
+.save-button, .cancel-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.save-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #218838;
+}
+
+.cancel-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-form {
+    padding: 20px;
+    margin-top: 10px;
+  }
+
+  .form-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .gender-select {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+  }
+
+  .save-button, .cancel-button {
+    width: 100%;
+  }
+}
+
+.profile-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  background-color: #28a745;  /* Zelená */
+  color: white;
+}
+
+.profile-button:hover {
+  background-color: #218838;
+}

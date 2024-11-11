@@ -1,4 +1,10 @@
+from enum import Enum
+from datetime import datetime
 from . import db
+
+class Gender(Enum):
+    MALE = 'male'
+    FEMALE = 'female'
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -6,6 +12,26 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     
+    # Osobní adresa
+    personal_street = db.Column(db.String(200))
+    personal_city = db.Column(db.String(100))
+    personal_postal_code = db.Column(db.String(10))
+    personal_country = db.Column(db.String(100))
+    
+    # Fakturační adresa
+    billing_street = db.Column(db.String(200))
+    billing_city = db.Column(db.String(100))
+    billing_postal_code = db.Column(db.String(10))
+    billing_country = db.Column(db.String(100))
+    
+    # Osobní údaje
+    gdpr_consent = db.Column(db.Boolean, default=False, nullable=True)  # Změněno zde
+    gdpr_consent_date = db.Column(db.DateTime, nullable=True)
+    gender = db.Column(db.Enum(Gender), nullable=True)
+    age = db.Column(db.Integer, nullable=True)
+    favorite_genres = db.Column(db.JSON, default=list)
+    referral_source = db.Column(db.String(200))
+
     # Vztah k oblíbeným knihám
     favorite_books = db.relationship('Book',
         secondary='favorite_books',

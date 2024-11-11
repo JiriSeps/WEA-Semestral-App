@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const Header = ({ language, toggleLanguage, user, handleLogout, toggleLoginForm, toggleRegisterForm, translations }) => (
+export const Header = ({ language, toggleLanguage, user, handleLogout, toggleLoginForm, toggleRegisterForm, toggleProfileForm, translations }) => (
   <div className="header">
     <button onClick={toggleLanguage} className="language-toggle">
       {language === 'cs' ? 'EN' : 'CS'}
@@ -9,7 +9,12 @@ export const Header = ({ language, toggleLanguage, user, handleLogout, toggleLog
     {user ? (
       <div className="auth-buttons logged-in">
         <span className="welcome-message">{translations[language].welcomeMessage}{user.name}</span>
-        <button onClick={handleLogout} className="logout-button">{translations[language].logout}</button>
+        <button onClick={toggleProfileForm} className="profile-button">
+          {translations[language].editProfile}
+        </button>
+        <button onClick={handleLogout} className="logout-button">
+          {translations[language].logout}
+        </button>
       </div>
     ) : (
       <div className="auth-buttons">

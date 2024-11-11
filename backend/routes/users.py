@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from database import db
 from database.user import User
-from database.user_operations import create_user, authenticate_user
+from database.user_operations import create_user, authenticate_user, update_user_profile
 import logging
 
 bp = Blueprint('users', __name__)
@@ -64,7 +64,71 @@ def get_user():
                 'user': {
                     'id': user.id,
                     'username': user.username,
-                    'name': user.name
+                    'name': user.name,
+                    'personal_address': {
+                        'street': user.personal_street,
+                        'city': user.personal_city,
+                        'postal_code': user.personal_postal_code,
+                        'country': user.personal_country
+                    },
+                    'billing_address': {
+                        'street': user.billing_street,
+                        'city': user.billing_city,
+                        'postal_code': user.billing_postal_code,
+                        'country': user.billing_country
+                    },
+                    'gdpr_consent': user.gdpr_consent,
+                    'gender': user.gender.value if user.gender else None,
+                    'age': user.age,
+                    'favorite_genres': user.favorite_genres,
+                    'referral_source': user.referral_source
                 }
             }), 200
     return jsonify({'error': 'Uživatel není přihlášen'}), 401
+
+@bp.route('/api/user/profile', methods=['PUT'])
+def update_profile():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Uživatel není přihlášen'}), 401
+
+    data = request.json
+    if not data:
+        return jsonify({'error': 'Nebyla poskytnuta žádná data k aktualizaci'}), 400
+
+    # Validace povinných polí pro GDPR
+    if 'gdpr_consent' in data and not data['gdpr_consent']:
+        return jsonify({'error': 'Pro používání služby je nutný souhlas s GDPR'}), 400
+
+    updated_user = update_user_profile(user_id, data)
+    
+    if updated_user:
+        info_logger.info('Uživatel ID %s aktualizoval svůj profil', user_id)
+        return jsonify({
+            'message': 'Profil byl úspěšně aktualizován',
+            'user': {
+                'id': updated_user.id,
+                'username': updated_user.username,
+                'name': updated_user.name,
+                'personal_address': {
+                    'street': updated_user.personal_street,
+                    'city': updated_user.personal_city,
+                    'postal_code': updated_user.personal_postal_code,
+                    'country': updated_user.personal_country
+                },
+                'billing_address': {
+                    'street': updated_user.billing_street,
+                    'city': updated_user.billing_city,
+                    'postal_code': updated_user.billing_postal_code,
+                    'country': updated_user.billing_country
+                },
+                'gdpr_consent': updated_user.gdpr_consent,
+                'gender': updated_user.gender.value if updated_user.gender else None,
+                'age': updated_user.age,
+                'favorite_genres': updated_user.favorite_genres,
+                'referral_source': updated_user.referral_source
+            }
+        }), 200
+    
+    error_logger.error('Aktualizace profilu uživatele ID %s selhala', user_id)
+    return jsonify({'error': 'Aktualizace profilu se nezdařila'}), 400
