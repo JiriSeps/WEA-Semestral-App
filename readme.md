@@ -55,6 +55,8 @@
 ---
 
 ### 🛠 cv08
+- **Další osobní údaje pro uživatele** - ❌ Dodělat
+- **Audit** - ❌ Dodělat
 
 ---
 
