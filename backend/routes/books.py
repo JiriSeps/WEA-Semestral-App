@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request, session
+from database.audit import AuditEventType
+from database.audit_operations import create_audit_log
 from database import db
 from database.book import Book
 from database.user import favorite_books
@@ -84,23 +86,33 @@ def fetch_books():
             error_logger.error('Chybějící data v požadavku')
             return jsonify({'error': 'Chybějící data v požadavku'}), 400
 
-        Book.query.update({Book.is_visible: False}, synchronize_session=False)
+        # Získáme seznam aktuálně viditelných knih
+        previously_visible_books = {book.ISBN10: book.Title for book in Book.query.filter_by(is_visible=True).all()}
+        # Seznam nových ISBN z příchozích dat
+        new_visible_isbns = {book['isbn10'] for book in books_data if book.get('isbn10')}
+        # Set pro sledování nově přidaných knih
+        newly_added_books = set()
         
         updated_books = 0
         new_books = 0
         
+        # Nastavíme všechny knihy jako neviditelné
+        Book.query.update({Book.is_visible: False}, synchronize_session=False)
+        
+        # Zpracujeme nová data
         for book in books_data:
             isbn10 = book.get('isbn10')
             if not isbn10:
                 continue
                 
+            title = book.get('title')
             existing_book = Book.query.get(isbn10)
             
             if existing_book:
                 existing_book.is_visible = True
                 existing_book.ISBN10 = isbn10
                 existing_book.ISBN13 = book.get('isbn13')
-                existing_book.Title = book.get('title')
+                existing_book.Title = title
                 existing_book.Author = book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', []))
                 existing_book.Genres = book.get('categories')
                 existing_book.Cover_Image = book.get('thumbnail')
@@ -114,7 +126,7 @@ def fetch_books():
                 new_book = Book(
                     ISBN10=isbn10,
                     ISBN13=book.get('isbn13'),
-                    Title=book.get('title'),
+                    Title=title,
                     Author=book.get('authors') if isinstance(book.get('authors'), str) else '; '.join(book.get('authors', [])),
                     Genres=book.get('categories'),
                     Cover_Image=book.get('thumbnail'),
@@ -127,6 +139,42 @@ def fetch_books():
                 )
                 db.session.add(new_book)
                 new_books += 1
+                newly_added_books.add(isbn10)  # Přidáme do setu nových knih
+                
+                # Auditujeme přidání úplně nové knihy
+                create_audit_log(
+                    event_type=AuditEventType.BOOK_ADD,
+                    username="CDB_SYSTEM",
+                    book_isbn=isbn10,
+                    book_title=title,
+                    additional_data={
+                        "author": new_book.Author,
+                        "genres": new_book.Genres
+                    }
+                )
+
+        # Porovnáme rozdíly a vytvoříme audit logy
+        for isbn, title in previously_visible_books.items():
+            if isbn not in new_visible_isbns:
+                # Kniha byla skryta
+                create_audit_log(
+                    event_type=AuditEventType.BOOK_HIDE,
+                    username="CDB_SYSTEM",
+                    book_isbn=isbn,
+                    book_title=title
+                )
+                
+        for isbn in new_visible_isbns:
+            if isbn not in previously_visible_books and isbn not in newly_added_books:
+                # Kniha byla znovu zobrazena (ale není úplně nová)
+                book = Book.query.get(isbn)
+                if book:
+                    create_audit_log(
+                        event_type=AuditEventType.BOOK_SHOW,
+                        username="CDB_SYSTEM",
+                        book_isbn=isbn,
+                        book_title=book.Title
+                    )
 
         db.session.commit()
         info_logger.info('Aktualizováno %d knih, přidáno %d nových knih', updated_books, new_books)

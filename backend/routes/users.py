@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request, session
 from database import db
 from database.user import User
-from database.user_operations import create_user, authenticate_user, update_user_profile
+from database.user_operations import authenticate_user, create_user, update_user_profile
+from database.audit import AuditEventType
+from database.audit_operations import create_audit_log
 import logging
 
 bp = Blueprint('users', __name__)
@@ -20,8 +22,16 @@ def register():
 
     user = create_user(username, password, name)
     if user:
+        # Přidáme auditní záznam po úspěšné registraci
+        create_audit_log(
+            event_type=AuditEventType.USER_REGISTER,
+            username=username,
+            additional_data={'name': name}  # Můžeme přidat i jméno do auditu
+        )
+        
         info_logger.info('Nový uživatel %s byl registrován', username)
         return jsonify({'message': 'Uživatel úspěšně zaregistrován'}), 201
+        
     info_logger.warning('Registrace uživatele %s selhala', username)
     return jsonify({'error': 'Registrace se nezdařila'}), 400
 
@@ -37,6 +47,13 @@ def login():
     user = authenticate_user(username, password)
     if user:
         session['user_id'] = user.id
+        
+        # Přidáme auditní záznam
+        create_audit_log(
+            event_type=AuditEventType.USER_LOGIN,
+            username=username
+        )
+        
         info_logger.info('Uživatel %s se přihlásil', username)
         return jsonify({
             'message': 'Přihlášení úspěšné',
@@ -46,11 +63,23 @@ def login():
                 'name': user.name
             }
         }), 200
-    info_logger.warning('Nepodařilo se přihlásit uživatele %s', username)
-    return jsonify({'error': 'Neplatné přihlašovací údaje'}), 401
 
 @bp.route('/api/logout', methods=['POST'])
 def logout():
+    # Získáme ID uživatele ze session před odhlášením
+    user_id = session.get('user_id')
+    if user_id:
+        # Najdeme uživatele v databázi
+        user = User.query.get(user_id)
+        if user:
+            # Vytvoříme auditní záznam
+            create_audit_log(
+                event_type=AuditEventType.USER_LOGOUT,
+                username=user.username
+            )
+            info_logger.info('Uživatel %s se odhlásil', user.username)
+    
+    # Smažeme session
     session.pop('user_id', None)
     return jsonify({'message': 'Odhlášení úspěšné'}), 200
 
