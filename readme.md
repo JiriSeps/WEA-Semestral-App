@@ -55,12 +55,17 @@
 ---
 
 ### 🛠 cv08
-- **Další osobní údaje pro uživatele** - ❌ Dodělat
-- **Audit** - ❌ Dodělat
+- **Další osobní údaje pro uživatele** - ✅ Hotovo
+- **Audit** - ✅ Hotovo
+- **Refractor** = ❌ Dodělat
 
 ---
 
 ### 📋 cv09 - Zatím nezačato
+- **Dokončit Audit** = ❓Asi hotovo
+- **Refractor** = ❌ Dodělat
+- **Košík** - ✅ Hotovo
+- **Upravit vzhled pro hodnoceni (barevné hvězdy) a tlačítko košíku** = ❌ Dodělat
 
 ---
 
