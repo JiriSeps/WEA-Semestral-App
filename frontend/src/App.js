@@ -8,7 +8,9 @@ import { translations } from './components/Translations';
 import BookDetail from './components/BookDetail';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
-import ProfileForm from './components/ProfileForm';  // Nový import
+import ProfileForm from './components/ProfileForm';
+import CartModal from './components/CartModal';
+
 import './App.css';
 axios.defaults.withCredentials = true; 
 
@@ -38,7 +40,9 @@ function App() {
   const [currentView, setCurrentView] = useState('list');
   const [selectedBookIsbn, setSelectedBookIsbn] = useState(null);
   const [showFavorites, setShowFavorites] = useState(false);
-  const [showProfileForm, setShowProfileForm] = useState(false);  // Nový state
+  const [showProfileForm, setShowProfileForm] = useState(false);
+  const [showCartModal, setShowCartModal] = useState(false);
+
 
   // Efekty
   useEffect(() => {
@@ -188,6 +192,10 @@ function App() {
     setSelectedBookIsbn(null);
   };
 
+  const toggleCartModal = () => {
+    setShowCartModal(!showCartModal);
+  };
+
   // Loading a Error stavy
   if (loading) return (
     <div className="loading-container">
@@ -211,7 +219,8 @@ function App() {
         handleLogout={handleLogout}
         toggleLoginForm={toggleLoginForm}
         toggleRegisterForm={toggleRegisterForm}
-        toggleProfileForm={toggleProfileForm}  // Nová prop
+        toggleProfileForm={toggleProfileForm}
+        toggleCartModal={toggleCartModal}
         translations={translations}
       />
       
@@ -293,6 +302,17 @@ function App() {
           user={user}
           showFavorites={showFavorites}
           onToggleFavorites={handleToggleFavorites}
+        />
+      )}
+
+      {showCartModal && (
+        <CartModal 
+          isOpen={showCartModal}
+          onClose={() => setShowCartModal(false)}
+          user={user}
+          language={language}
+          translations={translations}
+          toggleCart={() => setShowCartModal(false)}
         />
       )}
     </div>

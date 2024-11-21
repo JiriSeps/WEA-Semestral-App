@@ -1,14 +1,14 @@
 from flask import Blueprint, jsonify, request, session
 from database import db
-from database.favorite_operations import toggle_favorite, get_user_favorite_books, is_book_favorite
+from database.cart_operations import toggle_cart, get_user_shopping_cart, is_book_in_shopping_cart
 import logging
 
-bp = Blueprint('favorites', __name__)
+bp = Blueprint('shopping_cart', __name__)
 error_logger = logging.getLogger('error_logger')
 info_logger = logging.getLogger('info_logger')
 
-@bp.route('/api/favorites', methods=['GET'])
-def get_favorite_books_endpoint():
+@bp.route('/api/shoppingcart', methods=['GET'])
+def get_cart_books_endpoint():
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Uživatel není přihlášen'}), 401
@@ -16,10 +16,10 @@ def get_favorite_books_endpoint():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     
-    books, total, error = get_user_favorite_books(user_id, page, per_page)
+    books, total, error = get_user_shopping_cart(user_id, page, per_page)
     
     if books is None:
-        error_logger.error('Chyba při získávání oblíbených knih: %s', error)
+        error_logger.error('Chyba při získávání knih v košíku: %s', error)
         return jsonify({'error': error}), 400
         
     books_data = [{
@@ -34,7 +34,7 @@ def get_favorite_books_endpoint():
         'Number_of_Pages': book['book'].Number_of_Pages,
         'Average_Rating': book['book'].Average_Rating,
         'Number_of_Ratings': book['book'].Number_of_Ratings,
-        'Price' : book['book'].Price,
+        'Price': book['book'].Price,
         'is_visible': book['is_visible']
     } for book in books]
     
@@ -46,37 +46,40 @@ def get_favorite_books_endpoint():
         'total_pages': (total + per_page - 1) // per_page
     })
 
-@bp.route('/api/favorites/<isbn>', methods=['POST'])
-def toggle_favorite_book_endpoint(isbn):
+@bp.route('/api/shoppingcart/<isbn>', methods=['POST'])
+def toggle_cart_book_endpoint(isbn):
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Uživatel není přihlášen'}), 401
         
-    success, message = toggle_favorite(user_id, isbn)
+    success, message = toggle_cart(user_id, isbn)
     
     if success:
-        info_logger.info('Změněn stav oblíbené knihy %s pro uživatele %s', isbn, user_id)
-        return jsonify({'message': message}), 200
+        info_logger.info('Změněn stav knihy v košíku %s pro uživatele %s', isbn, user_id)
+        return jsonify({
+            'message': message,
+            'is_in_cart': is_book_in_shopping_cart(user_id, isbn)[0]
+        }), 200
     else:
         info_logger.warning(
-            'Nepodařilo se změnit stav oblíbené knihy %s: %s',
+            'Nepodařilo se změnit stav knihy v košíku %s: %s',
             isbn, message
         )
         return jsonify({'error': message}), 400
 
-@bp.route('/api/favorites/<isbn>/status', methods=['GET'])
-def check_favorite_status_endpoint(isbn):
+@bp.route('/api/shoppingcart/<isbn>/status', methods=['GET'])
+def check_cart_status_endpoint(isbn):
     user_id = session.get('user_id')
     if not user_id:
         return jsonify({'error': 'Uživatel není přihlášen'}), 401
         
-    is_favorite, error = is_book_favorite(user_id, isbn)
+    is_in_cart, error = is_book_in_shopping_cart(user_id, isbn)
     
     if error:
         info_logger.warning(
-            'Nepodařilo se zjistit stav oblíbené knihy %s: %s',
+            'Nepodařilo se zjistit stav knihy v košíku %s: %s',
             isbn, error
         )
         return jsonify({'error': error}), 400
         
-    return jsonify({'is_favorite': is_favorite})
+    return jsonify({'is_in_cart': is_in_cart})

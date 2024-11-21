@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from database import db
 
 # Import blueprintů
-from routes import books, users, comments, ratings, favorites
+from routes import books, users, comments, ratings, favorites, shopping_cart
 
 def setup_logging(app):
     log_dir = os.path.join(os.path.dirname(__file__), 'logs')
@@ -56,6 +56,7 @@ def create_app():
     app.register_blueprint(comments.bp)
     app.register_blueprint(ratings.bp)
     app.register_blueprint(favorites.bp)
+    app.register_blueprint(shopping_cart.bp)
     
     return app
 

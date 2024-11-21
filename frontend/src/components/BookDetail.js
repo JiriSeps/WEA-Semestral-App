@@ -13,7 +13,9 @@ const BookDetail = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const [isCartLoading, setIsCartLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
+  const [isInCart, setIsInCart] = useState(false);
 
   const fetchBookDetail = async () => {
     try {
@@ -32,6 +34,10 @@ const BookDetail = ({
       }
       
       setBook(data.book);
+      
+      if (user) {
+        await checkCartStatus();
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -91,6 +97,68 @@ const BookDetail = ({
     }
   };
 
+  const checkCartStatus = async () => {
+    try {
+      const response = await fetch(`http://localhost:8007/api/shoppingcart/${isbn}/status`, {
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      setIsInCart(data.is_favorite);
+    } catch (err) {
+      console.error('Failed to check cart status:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookDetail();
+  }, [isbn, language]);
+
+  const toggleCart = async () => {
+    if (!user) {
+      setStatusMessage({
+        type: 'error',
+        text: translations[language].loginRequired
+      });
+      return;
+    }
+
+    setIsCartLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8007/api/shoppingcart/${isbn}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || translations[language].cartError);
+      }
+
+      setIsInCart(prev => !prev);
+      
+      setStatusMessage({
+        type: 'success',
+        text: data.message || (isInCart 
+          ? translations[language].removedFromCart 
+          : translations[language].addedToCart)
+      });
+      
+    } catch (err) {
+      setStatusMessage({
+        type: 'error',
+        text: err.message
+      });
+    } finally {
+      setIsCartLoading(false);
+      setTimeout(() => setStatusMessage(null), 3000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -137,26 +205,40 @@ const BookDetail = ({
       <div className="book-card bg-white shadow-lg rounded-lg p-6">
         <div className="book-content">
           <div className="book-header">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="book-title text-2xl font-bold">{book.Title}</h1>
-              {user && (
-                <button 
-                  onClick={toggleFavorite}
-                  disabled={isFavoriteLoading}
-                  className={`favorite-button p-2 rounded-full transition-colors ${
-                    book.is_favorite 
-                      ? 'bg-red-100 hover:bg-red-200' 
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  } ${isFavoriteLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  aria-label={book.is_favorite ? translations[language].removeFromFavorites : translations[language].addToFavorites}
-                >
-                  <span className={`text-2xl ${book.is_favorite ? 'text-red-500' : 'text-gray-400'}`}>
-                    {book.is_favorite ? '❤️' : '🤍'}
-                  </span>
-                </button>
-              )}
-            </div>
-            
+          <div className="flex items-center space-x-2">
+                {user && (
+                  <>
+                    <button 
+                      onClick={toggleCart}
+                      disabled={isCartLoading}
+                      className={`cart-button p-2 rounded-full transition-colors ${
+                        isInCart 
+                          ? 'bg-green-100 hover:bg-green-200' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      } ${isCartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      aria-label={isInCart ? translations[language].removeFromCart : translations[language].addToCart}
+                    >
+                      <span className={`text-2xl ${isInCart ? 'text-green-500' : 'text-gray-400'}`}>
+                        🛒
+                      </span>
+                    </button>
+                    <button 
+                      onClick={toggleFavorite}
+                      disabled={isFavoriteLoading}
+                      className={`favorite-button p-2 rounded-full transition-colors ${
+                        book.is_favorite 
+                          ? 'bg-red-100 hover:bg-red-200' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      } ${isFavoriteLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      aria-label={book.is_favorite ? translations[language].removeFromFavorites : translations[language].addToFavorites}
+                    >
+                      <span className={`text-2xl ${book.is_favorite ? 'text-red-500' : 'text-gray-400'}`}>
+                        {book.is_favorite ? '❤️' : '🤍'}
+                      </span>
+                    </button>
+                  </>
+                )}
+              </div>
             {book.Cover_Image && (
               <div className="book-cover-container mb-4">
                 <img
