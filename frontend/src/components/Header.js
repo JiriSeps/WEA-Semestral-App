@@ -9,7 +9,7 @@ export const Header = ({
   toggleLoginForm, 
   toggleRegisterForm, 
   toggleProfileForm, 
-  toggleCartModal, 
+  toggleShoppingCart, 
   translations 
 }) => (
   <div className="header flex items-center justify-between p-4">
@@ -23,7 +23,7 @@ export const Header = ({
     <div className="flex items-center space-x-4">
       {user && (
         <button 
-          onClick={toggleCartModal} 
+          onClick={toggleShoppingCart}
           className="cart-button relative"
         >
           <ShoppingCart size={24} />

@@ -9,7 +9,7 @@ import BookDetail from './components/BookDetail';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ProfileForm from './components/ProfileForm';
-import CartModal from './components/CartModal';
+import ShoppingCart from './components/ShoppingCart';
 
 import './App.css';
 axios.defaults.withCredentials = true; 
@@ -41,7 +41,7 @@ function App() {
   const [selectedBookIsbn, setSelectedBookIsbn] = useState(null);
   const [showFavorites, setShowFavorites] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
-  const [showCartModal, setShowCartModal] = useState(false);
+  const [showShoppingCart, setShowShoppingCart] = useState(false);
 
 
   // Efekty
@@ -192,8 +192,8 @@ function App() {
     setSelectedBookIsbn(null);
   };
 
-  const toggleCartModal = () => {
-    setShowCartModal(!showCartModal);
+  const toggleShoppingCart = () => {
+    setShowShoppingCart(!showShoppingCart);
   };
 
   // Loading a Error stavy
@@ -220,7 +220,7 @@ function App() {
         toggleLoginForm={toggleLoginForm}
         toggleRegisterForm={toggleRegisterForm}
         toggleProfileForm={toggleProfileForm}
-        toggleCartModal={toggleCartModal}
+        toggleShoppingCart={toggleShoppingCart}
         translations={translations}
       />
       
@@ -305,14 +305,14 @@ function App() {
         />
       )}
 
-      {showCartModal && (
-        <CartModal 
-          isOpen={showCartModal}
-          onClose={() => setShowCartModal(false)}
+      {showShoppingCart && (
+        <ShoppingCart 
+          isOpen={showShoppingCart}
+          onClose={() => setShowShoppingCart(false)}
           user={user}
           language={language}
           translations={translations}
-          toggleCart={() => setShowCartModal(false)}
+          toggleCart={() => setShowShoppingCart(false)}
         />
       )}
     </div>
