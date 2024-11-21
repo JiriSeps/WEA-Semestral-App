@@ -12,6 +12,7 @@ class Book(db.Model):
     Number_of_Pages = db.Column(db.Integer)
     Average_Rating = db.Column(db.Float)
     Number_of_Ratings = db.Column(db.Integer)
+    Price = db.Column(db.Float)
     is_visible = db.Column(db.Boolean, default=True)  # Přidáno pro viditelnost knih
     
     # Vztah k komentářům

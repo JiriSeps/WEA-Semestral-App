@@ -79,7 +79,8 @@ export const translations = {
         gdprConsent: "Souhlasím se zpracováním osobních údajů",
         save: "Uložit",
         cancel: "Zrušit",
-        updateError: "Při aktualizaci profilu došlo k chybě"
+        updateError: "Při aktualizaci profilu došlo k chybě",
+        price: "Cena"
     },
     en: {
         title: "Book Store",
@@ -161,6 +162,7 @@ export const translations = {
         gdprConsent: "I agree with the processing of personal data",
         save: "Save",
         cancel: "Cancel",
-        updateError: "Error updating profile"
+        updateError: "Error updating profile",
+        price: "Price"
     }
 };

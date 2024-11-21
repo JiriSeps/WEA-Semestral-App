@@ -173,6 +173,11 @@ const BookDetail = ({
             <h2 className="book-author text-xl text-gray-700 mb-4">{book.Author}</h2>
             
             <div className="book-details-grid grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div>
+                <p className="book-detail-label">
+                  <span className="font-medium">{translations[language].price}:</span> {book.Price || '-'}
+                </p>
+              </div>
               <div>
                 <p className="book-detail-label">
                   <span className="font-medium">{translations[language].isbn10}:</span> {book.ISBN10 || '-'}

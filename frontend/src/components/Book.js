@@ -9,6 +9,7 @@ const Book = ({
   numberOfPages, 
   averageRating, 
   numberOfRatings,
+  price,
   onBookSelect,
   isVisible,
   showFavorites
@@ -49,6 +50,7 @@ const Book = ({
       <td>{numberOfPages}</td>
       <td>{averageRating?.toFixed(1)}</td>
       <td>{numberOfRatings}</td>
+      <td>{price}</td>
     </tr>
   );
 };

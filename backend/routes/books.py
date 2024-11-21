@@ -62,6 +62,7 @@ def get_books():
             'Number_of_Pages': book.Number_of_Pages,
             'Average_Rating': book.Average_Rating,
             'Number_of_Ratings': book.Number_of_Ratings,
+            'Price' : book.Price,
             'is_visible': book.is_visible if show_favorites else True
         } for book in books]
 
@@ -121,6 +122,7 @@ def fetch_books():
                 existing_book.Number_of_Pages = book.get('num_pages')
                 existing_book.Average_Rating = book.get('average_rating')
                 existing_book.Number_of_Ratings = book.get('ratings_count')
+                existing_book.Price = book.get('price')
                 updated_books += 1
             else:
                 new_book = Book(
@@ -135,6 +137,7 @@ def fetch_books():
                     Number_of_Pages=book.get('num_pages'),
                     Average_Rating=book.get('average_rating'),
                     Number_of_Ratings=book.get('ratings_count'),
+                    Price=book.get('price'),
                     is_visible=True
                 )
                 db.session.add(new_book)
@@ -220,6 +223,7 @@ def get_book_endpoint(isbn):
             'Number_of_Pages': book.Number_of_Pages,
             'Average_Rating': book.Average_Rating,
             'Number_of_Ratings': book.Number_of_Ratings,
+            'Price' : book.Price,
             'is_favorite': is_favorite
         }
         

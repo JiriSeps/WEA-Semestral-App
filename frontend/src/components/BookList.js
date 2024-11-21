@@ -19,6 +19,7 @@ export const BookList = ({
           <th>ISBN13</th>
           <th>{translations[language].genres}</th>
           <th>{translations[language].yearOfPublication}</th>
+          <th>{translations[language].price}</th>
         </tr>
       </thead>
       <tbody>
@@ -32,6 +33,7 @@ export const BookList = ({
             isbn13={book.ISBN13}
             genres={book.Genres}
             yearOfPublication={book.Year_of_Publication}
+            price={book.Price}
             onBookSelect={onBookSelect}
             isVisible={book.is_visible}  // Nový prop
             showFavorites={showFavorites}  // Předáváme dál do Book komponenty
