@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
-const CartModal = ({ 
-  isOpen, 
-  onClose, 
-  user, 
+const ShoppingCart = ({ 
   language, 
   translations, 
-  toggleCart 
+  user,
+  onBackToList 
 }) => {
   const [cartItems, setCartItems] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
+  const [isCartLoading, setIsCartLoading] = useState(false);
 
   const fetchCartItems = async () => {
     if (!user) return;
@@ -21,119 +21,209 @@ const CartModal = ({
     setIsLoading(true);
     try {
       const response = await axios.get('http://localhost:8007/api/shoppingcart', {
-        params: { page }
+        params: { page },
+        headers: {
+          'Accept': 'application/json'
+        }
       });
-      
+  
       setCartItems(response.data.books);
       setTotalPages(response.data.total_pages);
+      
+      setStatusMessage({
+        type: 'success',
+        text: response.data.message || translations[language].cartLoaded
+      });
+  
     } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || translations[language].cartError;
+      setStatusMessage({
+        type: 'error',
+        text: errorMessage
+      });
       console.error('Error fetching cart items:', error);
     } finally {
       setIsLoading(false);
+      setTimeout(() => setStatusMessage(null), 3000);
     }
   };
 
   const removeFromCart = async (isbn) => {
+    if (!isbn) {
+      console.error('ISBN is required to remove item from cart');
+      return;
+    }
+
+    setIsCartLoading(true);
     try {
-      await axios.post(`/api/shoppingcart/${isbn}`);
-      fetchCartItems();
+      const response = await axios.post(`http://localhost:8007/api/shoppingcart/${isbn}`, null, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.data.is_in_cart === false) {
+        await fetchCartItems();
+        
+        setStatusMessage({
+          type: 'success',
+          text: response.data?.message || translations[language].removedFromCart
+        });
+      }
+  
     } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || translations[language].removeError;
+      setStatusMessage({
+        type: 'error',
+        text: errorMessage
+      });
       console.error('Error removing item from cart:', error);
+    } finally {
+      setIsCartLoading(false);
+      setTimeout(() => setStatusMessage(null), 3000);
     }
   };
 
   useEffect(() => {
-    if (isOpen) {
+    let mounted = true;
+
+    if (mounted) {
       fetchCartItems();
     }
-  }, [isOpen, page]);
 
-  if (!isOpen) return null;
+    return () => {
+      mounted = false;
+    };
+  }, [page, user]);
+
+  if (isLoading) {
+    return (
+      <div className="cart-loading-container">
+        <div className="cart-loading-text">{translations[language].loading}</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg w-[600px] max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-xl font-bold">
-            {translations[language].shoppingCart}
-          </h2>
-          <button 
-            onClick={onClose} 
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <div className="cart-page-container">
+      <div className="cart-content-wrapper">
+        {/* Back Button */}
+        <button
+          onClick={onBackToList}
+          className="cart-back-button"
+        >
+          ← {translations[language].back}
+        </button>
 
-        {/* Cart Items */}
-        <div className="overflow-y-auto flex-grow p-4">
-          {isLoading ? (
-            <p>{translations[language].loading}</p>
-          ) : cartItems.length === 0 ? (
-            <p>{translations[language].emptyCart}</p>
-          ) : (
-            cartItems.map(book => (
-              <div 
-                key={book.ISBN13} 
-                className="flex items-center border-b py-2"
-              >
-                <img 
-                  src={book.Cover_Image} 
-                  alt={book.Title} 
-                  className="w-16 h-24 object-cover mr-4"
-                />
-                <div className="flex-grow">
-                  <h3 className="font-bold">{book.Title}</h3>
-                  <p className="text-gray-600">{book.Author}</p>
-                  <p className="font-semibold">{book.Price} CZK</p>
-                </div>
-                <button 
-                  onClick={() => removeFromCart(book.ISBN13)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <Trash2 size={20} />
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center p-4">
-            {[...Array(totalPages)].map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setPage(index + 1)}
-                className={`mx-1 px-3 py-1 rounded ${
-                  page === index + 1 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-200'
-                }`}
-              >
-                {index + 1}
-              </button>
-            ))}
+        {/* Status Message */}
+        {statusMessage && (
+          <div className={`cart-status-message ${
+            statusMessage.type === 'success' 
+              ? 'bg-green-100 text-green-700' 
+              : 'bg-red-100 text-red-700'
+          }`}>
+            {statusMessage.text}
           </div>
         )}
 
-        {/* Footer */}
-        <div className="p-4 border-t flex justify-between items-center">
-          <span className="font-bold">
-            {translations[language].total}: {' '}
-            {cartItems.reduce((total, book) => total + book.Price, 0).toFixed(2)} CZK
-          </span>
-          <button 
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            onClick={() => {/* Implement checkout logic */}}
-          >
-            {translations[language].checkout}
-          </button>
+        {/* Main Content */}
+        <div className="cart-main-panel">
+          {/* Header */}
+          <div className="cart-header">
+            <h1 className="cart-title">
+              {translations[language].shoppingCart}
+            </h1>
+          </div>
+
+          {/* Cart Items */}
+          <div className="cart-items-container">
+            {cartItems.length === 0 ? (
+              <div className="cart-empty-state">
+                <p className="cart-empty-message">
+                  {translations[language].emptyCart}
+                </p>
+              </div>
+            ) : (
+              <div className="cart-items-list">
+                {cartItems.map(book => (
+                  <div 
+                    key={book.ISBN13} 
+                    className="cart-item"
+                  >
+                    <img 
+                      src={book.Cover_Image} 
+                      alt={book.Title} 
+                      className="cart-item-image"
+                      onError={(e) => {
+                        e.target.src = '/placeholder-book.png';
+                        e.target.onerror = null;
+                      }}
+                    />
+                    <div className="cart-item-details">
+                      <h3 className="cart-item-title">{book.Title}</h3>
+                      <p className="cart-item-author">{book.Author}</p>
+                      <p className="cart-item-isbn">ISBN: {book.ISBN13}</p>
+                      <p className="cart-item-price">
+                        {book.Price.toFixed(2)} CZK
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => removeFromCart(book.ISBN13)}
+                      className="cart-item-remove-button"
+                      disabled={isCartLoading}
+                      aria-label={`Remove ${book.Title} from cart`}
+                    >
+                      <Trash2 size={24} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="cart-pagination">
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setPage(index + 1)}
+                  className={`cart-page-button ${
+                    page === index + 1 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                  aria-label={`Page ${index + 1}`}
+                  aria-current={page === index + 1 ? 'page' : undefined}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Footer with Total and Checkout */}
+          {cartItems.length > 0 && (
+            <div className="cart-footer">
+              <div className="cart-footer-content">
+                <div className="cart-total">
+                  {translations[language].total}: {' '}
+                  {cartItems.reduce((total, book) => total + book.Price, 0).toFixed(2)} CZK
+                </div>
+                <button 
+                  className="cart-checkout-button"
+                  onClick={() => {/* Implement checkout logic */}}
+                >
+                  {translations[language].checkout}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default CartModal;
+export default ShoppingCart;

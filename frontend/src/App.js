@@ -193,7 +193,13 @@ function App() {
   };
 
   const toggleShoppingCart = () => {
-    setShowShoppingCart(!showShoppingCart);
+    setCurrentView('cart');
+    setShowShoppingCart(true);
+  };
+
+  const handleBackFromCart = () => {
+    setCurrentView('list');
+    setShowShoppingCart(false);
   };
 
   // Loading a Error stavy
@@ -305,18 +311,17 @@ function App() {
         />
       )}
 
-      {showShoppingCart && (
+      {currentView === 'cart' && (
         <ShoppingCart 
-          isOpen={showShoppingCart}
-          onClose={() => setShowShoppingCart(false)}
-          user={user}
           language={language}
           translations={translations}
-          toggleCart={() => setShowShoppingCart(false)}
+          user={user}
+          onBackToList={handleBackFromCart}
         />
       )}
     </div>
   );
 }
+
 
 export default App;
