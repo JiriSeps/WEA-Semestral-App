@@ -61,7 +61,7 @@
 
 ---
 
-### 📋 cv09 - Zatím nezačato
+### 🛠 cv09
 - **Dokončit Audit** = ❓Asi hotovo
 - **Refractor** = ❌ Dodělat
 - **Košík** - ✅ Hotovo
