@@ -65,7 +65,7 @@
 - **Dokončit Audit** - ❓Asi hotovo
 - **Refractor** - ❌ Dodělat
 - **Košík** - ✅ Hotovo
-- **Upravit vzhled pro hodnoceni (barevné hvězdy) a tlačítko košíku** - ❌ Dodělat
+- **Upravit vzhled pro hodnoceni (barevné hvězdy) a tlačítko košíku** - ✅ Hotovo
 
 ---
 
