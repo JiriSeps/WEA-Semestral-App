@@ -199,24 +199,6 @@ const BookDetail = ({
     </button>
   );
 
-  const RatingStars = ({ rating }) => {
-    return (
-      <div className="flex items-center space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            size={20}
-            stroke={star <= rating ? '#facc15' : '#d1d5db'}
-            fill={star <= rating ? '#facc15' : 'none'}
-          />
-        ))}
-        <span className="ml-2 text-sm text-gray-600">
-          {rating ? `${rating}/5` : translations[language].noRating}
-        </span>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -327,7 +309,6 @@ const BookDetail = ({
               <h3 className="text-lg font-medium mb-2">
                 {translations[language].yourRating}
               </h3>
-              <RatingStars rating={book?.user_rating || 0} />
               <BookRating 
                 isbn={book?.ISBN10} 
                 user={user}

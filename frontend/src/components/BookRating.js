@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 
-const BookRating = ({ isbn, user, translations, language, onRatingUpdate }) => {
-  const [userRating, setUserRating] = useState(null);
+const BookRating = ({ isbn, user, translations, language, onRatingUpdate, currentRating }) => {
+  const [userRating, setUserRating] = useState(currentRating || null);
   const [hoveredRating, setHoveredRating] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
 
   useEffect(() => {
-    if (user) {
+    setUserRating(currentRating || null);
+  }, [currentRating]);
+
+  useEffect(() => {
+    if (user && !currentRating) {
       fetchUserRating();
     } else {
       setLoading(false);
     }
-  }, [isbn, user]);
+  }, [isbn, user, currentRating]);
 
   const fetchUserRating = async () => {
     try {
@@ -81,7 +85,6 @@ const BookRating = ({ isbn, user, translations, language, onRatingUpdate }) => {
       });
     }
 
-    // Clear status message after 3 seconds
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
@@ -118,11 +121,10 @@ const BookRating = ({ isbn, user, translations, language, onRatingUpdate }) => {
             disabled={!user}
           >
             <Star
-              className={`w-6 h-6 ${
-                (hoveredRating ? rating <= hoveredRating : rating <= (userRating || 0))
-                  ? 'text-yellow-400 fill-yellow-400'
-                  : 'text-gray-300'
-              }`}
+              size={24}
+              className={`transition-colors`}
+              fill={hoveredRating ? rating <= hoveredRating : rating <= (userRating || 0) ? '#facc15' : 'none'}
+              stroke={hoveredRating ? rating <= hoveredRating : rating <= (userRating || 0) ? '#facc15' : '#d1d5db'}
             />
           </button>
         ))}
