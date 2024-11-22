@@ -160,7 +160,7 @@ const BookDetail = ({
     <button 
       onClick={toggleCart}
       disabled={isCartLoading}
-      className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${
+      className={`flex items-center ${
         isInCart 
           ? 'bg-green-100 hover:bg-green-200' 
           : 'bg-gray-100 hover:bg-gray-200'
@@ -184,7 +184,7 @@ const BookDetail = ({
     <button 
       onClick={toggleFavorite}
       disabled={isFavoriteLoading}
-      className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${
+      className={`flex items-center ${
         book?.is_favorite 
           ? 'bg-red-100 hover:bg-red-200' 
           : 'bg-gray-100 hover:bg-gray-200'
@@ -201,7 +201,7 @@ const BookDetail = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center">
         <div className="loading-message">{translations[language].loading}</div>
       </div>
     );
@@ -209,7 +209,7 @@ const BookDetail = ({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center">
         <div className="error-message text-red-500">{error}</div>
       </div>
     );
@@ -217,17 +217,17 @@ const BookDetail = ({
 
   if (!book) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center">
         <div className="not-found-message">{translations[language].bookNotFound}</div>
       </div>
     );
   }
 
   return (
-    <div className="book-detail-container p-4">
+    <div className="book-detail-container">
       <button
         onClick={onBackToList}
-        className="mb-4 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+        className="back-button"
       >
         {translations[language].back}
       </button>
@@ -246,7 +246,7 @@ const BookDetail = ({
         <div className="book-content">
           <div className="book-header">
           {user && (
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="flex items-center">
                 <CartButton />
                 <FavoriteButton />
               </div>
@@ -305,7 +305,7 @@ const BookDetail = ({
             </div>
           </div>
 
-          <div className="book-rating-section mt-6">
+          <div className="book-rating-section">
               <h3 className="text-lg font-medium mb-2">
                 {translations[language].yourRating}
               </h3>
