@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Heart, Star } from 'lucide-react';
 import BookComments from './BookComments';
 import BookRating from './BookRating';
 
@@ -104,15 +105,11 @@ const BookDetail = ({
       });
       
       const data = await response.json();
-      setIsInCart(data.is_favorite);
+      setIsInCart(data.is_in_cart);
     } catch (err) {
       console.error('Failed to check cart status:', err);
     }
   };
-
-  useEffect(() => {
-    fetchBookDetail();
-  }, [isbn, language]);
 
   const toggleCart = async () => {
     if (!user) {
@@ -159,6 +156,67 @@ const BookDetail = ({
     }
   };
 
+  const CartButton = () => (
+    <button 
+      onClick={toggleCart}
+      disabled={isCartLoading}
+      className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${
+        isInCart 
+          ? 'bg-green-100 hover:bg-green-200' 
+          : 'bg-gray-100 hover:bg-gray-200'
+      } ${isCartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      aria-label={isInCart ? translations[language].removeFromCart : translations[language].addToCart}
+    >
+      <ShoppingCart 
+        size={24}
+        stroke={isInCart ? '#16a34a' : '#4b5563'} 
+        fill={isInCart ? '#dcfce7' : 'none'}
+      />
+      <span className={`ml-2 text-sm font-medium ${
+        isInCart ? 'text-green-600' : 'text-gray-600'
+      }`}>
+        {isInCart ? translations[language].inCart : translations[language].addToCart}
+      </span>
+    </button>
+  );
+
+  const FavoriteButton = () => (
+    <button 
+      onClick={toggleFavorite}
+      disabled={isFavoriteLoading}
+      className={`flex items-center justify-center p-2 rounded-lg transition-all duration-200 ${
+        book?.is_favorite 
+          ? 'bg-red-100 hover:bg-red-200' 
+          : 'bg-gray-100 hover:bg-gray-200'
+      } ${isFavoriteLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      aria-label={book?.is_favorite ? translations[language].removeFromFavorites : translations[language].addToFavorites}
+    >
+      <Heart 
+        size={24}
+        stroke={book?.is_favorite ? '#dc2626' : '#4b5563'}
+        fill={book?.is_favorite ? '#fee2e2' : 'none'}
+      />
+    </button>
+  );
+
+  const RatingStars = ({ rating }) => {
+    return (
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={20}
+            stroke={star <= rating ? '#facc15' : '#d1d5db'}
+            fill={star <= rating ? '#facc15' : 'none'}
+          />
+        ))}
+        <span className="ml-2 text-sm text-gray-600">
+          {rating ? `${rating}/5` : translations[language].noRating}
+        </span>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -184,10 +242,10 @@ const BookDetail = ({
   }
 
   return (
-    <div className="book-detail-container">
+    <div className="book-detail-container p-4">
       <button
         onClick={onBackToList}
-        className="back-button"
+        className="mb-4 px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
       >
         {translations[language].back}
       </button>
@@ -205,40 +263,12 @@ const BookDetail = ({
       <div className="book-card">
         <div className="book-content">
           <div className="book-header">
-          <div className="flex items-center space-x-2">
-                {user && (
-                  <>
-                    <button 
-                      onClick={toggleCart}
-                      disabled={isCartLoading}
-                      className={`cart-button ${
-                        isInCart 
-                          ? 'bg-green-100 hover:bg-green-200' 
-                          : 'bg-gray-100 hover:bg-gray-200'
-                      } ${isCartLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      aria-label={isInCart ? translations[language].removeFromCart : translations[language].addToCart}
-                    >
-                      <span className={`text-2xl ${isInCart ? 'text-green-500' : 'text-gray-400'}`}>
-                        🛒
-                      </span>
-                    </button>
-                    <button 
-                      onClick={toggleFavorite}
-                      disabled={isFavoriteLoading}
-                      className={`favorite-button ${
-                        book.is_favorite 
-                          ? 'bg-red-100 hover:bg-red-200' 
-                          : 'bg-gray-100 hover:bg-gray-200'
-                      } ${isFavoriteLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      aria-label={book.is_favorite ? translations[language].removeFromFavorites : translations[language].addToFavorites}
-                    >
-                      <span className={`text-2xl ${book.is_favorite ? 'text-red-500' : 'text-gray-400'}`}>
-                        {book.is_favorite ? '❤️' : '🤍'}
-                      </span>
-                    </button>
-                  </>
-                )}
+          {user && (
+              <div className="flex items-center space-x-2 mb-4">
+                <CartButton />
+                <FavoriteButton />
               </div>
+            )}
             {book.Cover_Image && (
               <div className="book-cover-container">
                 <img
@@ -293,17 +323,19 @@ const BookDetail = ({
             </div>
           </div>
 
-          <div className="book-rating-section">
-            <h3 className="text-lg font-medium">
-              {translations[language].yourRating}
-            </h3>
-            <BookRating 
-              isbn={book.ISBN10} 
-              user={user}
-              translations={translations}
-              language={language}
-              onRatingUpdate={fetchBookDetail}
-            />
+          <div className="book-rating-section mt-6">
+              <h3 className="text-lg font-medium mb-2">
+                {translations[language].yourRating}
+              </h3>
+              <RatingStars rating={book?.user_rating || 0} />
+              <BookRating 
+                isbn={book?.ISBN10} 
+                user={user}
+                translations={translations}
+                language={language}
+                onRatingUpdate={fetchBookDetail}
+                currentRating={book?.user_rating}
+              />
           </div>
 
           <div className="book-description-section">
