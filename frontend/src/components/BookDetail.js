@@ -187,7 +187,7 @@ const BookDetail = ({
     <div className="book-detail-container">
       <button
         onClick={onBackToList}
-        className="back-button mb-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
+        className="back-button"
       >
         {translations[language].back}
       </button>
@@ -202,7 +202,7 @@ const BookDetail = ({
         </div>
       )}
 
-      <div className="book-card bg-white shadow-lg rounded-lg p-6">
+      <div className="book-card">
         <div className="book-content">
           <div className="book-header">
           <div className="flex items-center space-x-2">
@@ -211,7 +211,7 @@ const BookDetail = ({
                     <button 
                       onClick={toggleCart}
                       disabled={isCartLoading}
-                      className={`cart-button p-2 rounded-full transition-colors ${
+                      className={`cart-button ${
                         isInCart 
                           ? 'bg-green-100 hover:bg-green-200' 
                           : 'bg-gray-100 hover:bg-gray-200'
@@ -225,7 +225,7 @@ const BookDetail = ({
                     <button 
                       onClick={toggleFavorite}
                       disabled={isFavoriteLoading}
-                      className={`favorite-button p-2 rounded-full transition-colors ${
+                      className={`favorite-button ${
                         book.is_favorite 
                           ? 'bg-red-100 hover:bg-red-200' 
                           : 'bg-gray-100 hover:bg-gray-200'
@@ -240,11 +240,11 @@ const BookDetail = ({
                 )}
               </div>
             {book.Cover_Image && (
-              <div className="book-cover-container mb-4">
+              <div className="book-cover-container">
                 <img
                   src={book.Cover_Image}
                   alt={book.Title}
-                  className="book-cover-image max-w-xs mx-auto rounded shadow"
+                  className="book-cover-image"
                   onError={(e) => {
                     e.target.src = '/placeholder-book.png';
                     e.target.onerror = null;
@@ -252,9 +252,9 @@ const BookDetail = ({
                 />
               </div>
             )}
-            <h2 className="book-author text-xl text-gray-700 mb-4">{book.Author}</h2>
+            <h2 className="book-author">{book.Author}</h2>
             
-            <div className="book-details-grid grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div className="book-details-grid">
             <div>
                 <p className="book-detail-label">
                   <span className="font-medium">{translations[language].price}:</span> {book.Price || '-'}
@@ -293,8 +293,8 @@ const BookDetail = ({
             </div>
           </div>
 
-          <div className="book-rating-section mb-6">
-            <h3 className="text-lg font-medium mb-2">
+          <div className="book-rating-section">
+            <h3 className="text-lg font-medium">
               {translations[language].yourRating}
             </h3>
             <BookRating 
@@ -307,14 +307,14 @@ const BookDetail = ({
           </div>
 
           <div className="book-description-section">
-            <div className="genres-container mb-4">
-              <h3 className="genres-title text-lg font-medium mb-2">{translations[language].genres}</h3>
+            <div className="genres-container">
+              <h3 className="genres-title">{translations[language].genres}</h3>
               <p className="genres-text">{book.Genres || '-'}</p>
             </div>
 
             {book.Description && (
               <div className="description-container">
-                <h3 className="description-title text-lg font-medium mb-2">{translations[language].description}</h3>
+                <h3 className="description-title">{translations[language].description}</h3>
                 <p className="description-text">{book.Description}</p>
               </div>
             )}

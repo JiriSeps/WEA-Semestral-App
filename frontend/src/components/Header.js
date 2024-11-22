@@ -21,16 +21,6 @@ export const Header = ({
     </div>
     
     <div className="flex items-center space-x-4">
-      {user && (
-        <button 
-          onClick={toggleShoppingCart}
-          className="cart-button relative"
-        >
-          <ShoppingCart size={24} />
-          {/* Optional: Add badge for number of items in cart */}
-        </button>
-      )}
-
       {user ? (
         <div className="auth-buttons logged-in flex items-center space-x-2">
           <span className="welcome-message">{translations[language].welcomeMessage}{user.name}</span>
@@ -39,6 +29,13 @@ export const Header = ({
           </button>
           <button onClick={handleLogout} className="logout-button">
             {translations[language].logout}
+          </button>
+          <button 
+            onClick={toggleShoppingCart}
+            className="cart-button"
+          >
+            <ShoppingCart size={24} />
+            {/* Optional: Add badge for number of items in cart */}
           </button>
         </div>
       ) : (

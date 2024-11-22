@@ -80,6 +80,14 @@ h1 {
   transition: background-color 0.3s ease;
 }
 
+.cart-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
 .auth-button {
   background-color: #28a745;
   color: white;
@@ -201,7 +209,7 @@ h1 {
   transition: background-color 0.3s ease;
 }
 
-.search-button, .language-toggle {
+.search-button, .language-toggle, .cart-button {
   background-color: #007bff;
   color: white;
 }
@@ -293,7 +301,7 @@ h1 {
   color: white;
 }
 
-.search-button:hover {
+.search-button:hover, .cart-button {
   background-color: #0056b3;
 }
 
@@ -1128,6 +1136,14 @@ tr.book-unavailable:hover {
 }
 
 /* Main Container Styles */
+.cart-card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+  margin-top: 1.5rem;
+}
+
 .cart-page-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -1141,21 +1157,25 @@ tr.book-unavailable:hover {
 }
 
 /* Back Button */
+/* Back button styles */
 .cart-back-button {
-  margin: 20px;
-  padding: 8px 16px;
-  background-color: transparent;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  color: #4a5568;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
   font-weight: 500;
-  transition: all 0.2s;
+  color: #374151;
+  transition: all 0.2s ease-in-out;
 }
 
 .cart-back-button:hover {
-  background-color: #f7fafc;
-  color: #2d3748;
+  background-color: #e5e7eb;
+  transform: translateX(-2px);
 }
+
 
 /* Status Message */
 .cart-status-message {

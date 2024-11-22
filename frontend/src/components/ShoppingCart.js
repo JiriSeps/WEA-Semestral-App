@@ -106,120 +106,121 @@ const ShoppingCart = ({
   }
 
   return (
-    <div className="cart-page-container">
-      <div className="cart-content-wrapper">
+    <div className="cart-card">
+      <div className="cart-page-container">
         {/* Back Button */}
         <button
-          onClick={onBackToList}
-          className="cart-back-button"
-        >
-          ← {translations[language].back}
-        </button>
+            onClick={onBackToList}
+            className="cart-back-button"
+          >
+            ← {translations[language].back}
+          </button>
+        <div className="cart-content-wrapper">
+          {/* Status Message */}
+          {statusMessage && (
+            <div className={`cart-status-message ${
+              statusMessage.type === 'success' 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-red-100 text-red-700'
+            }`}>
+              {statusMessage.text}
+            </div>
+          )}
 
-        {/* Status Message */}
-        {statusMessage && (
-          <div className={`cart-status-message ${
-            statusMessage.type === 'success' 
-              ? 'bg-green-100 text-green-700' 
-              : 'bg-red-100 text-red-700'
-          }`}>
-            {statusMessage.text}
-          </div>
-        )}
+          {/* Main Content */}
+          <div className="cart-main-panel">
+            {/* Header */}
+            <div className="cart-header">
+              <h1 className="cart-title">
+                {translations[language].shoppingCart}
+              </h1>
+            </div>
 
-        {/* Main Content */}
-        <div className="cart-main-panel">
-          {/* Header */}
-          <div className="cart-header">
-            <h1 className="cart-title">
-              {translations[language].shoppingCart}
-            </h1>
-          </div>
-
-          {/* Cart Items */}
-          <div className="cart-items-container">
-            {cartItems.length === 0 ? (
-              <div className="cart-empty-state">
-                <p className="cart-empty-message">
-                  {translations[language].emptyCart}
-                </p>
-              </div>
-            ) : (
-              <div className="cart-items-list">
-                {cartItems.map(book => (
-                  <div 
-                    key={book.ISBN13} 
-                    className="cart-item"
-                  >
-                    <img 
-                      src={book.Cover_Image} 
-                      alt={book.Title} 
-                      className="cart-item-image"
-                      onError={(e) => {
-                        e.target.src = '/placeholder-book.png';
-                        e.target.onerror = null;
-                      }}
-                    />
-                    <div className="cart-item-details">
-                      <h3 className="cart-item-title">{book.Title}</h3>
-                      <p className="cart-item-author">{book.Author}</p>
-                      <p className="cart-item-isbn">ISBN: {book.ISBN13}</p>
-                      <p className="cart-item-price">
-                        {book.Price.toFixed(2)} CZK
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => removeFromCart(book.ISBN13)}
-                      className="cart-item-remove-button"
-                      disabled={isCartLoading}
-                      aria-label={`Remove ${book.Title} from cart`}
+            {/* Cart Items */}
+            <div className="cart-items-container">
+              {cartItems.length === 0 ? (
+                <div className="cart-empty-state">
+                  <p className="cart-empty-message">
+                    {translations[language].emptyCart}
+                  </p>
+                </div>
+              ) : (
+                <div className="cart-items-list">
+                  {cartItems.map(book => (
+                    <div 
+                      key={book.ISBN13} 
+                      className="cart-item"
                     >
-                      <Trash2 size={24} />
-                    </button>
-                  </div>
+                      <img 
+                        src={book.Cover_Image} 
+                        alt={book.Title} 
+                        className="cart-item-image"
+                        onError={(e) => {
+                          e.target.src = '/placeholder-book.png';
+                          e.target.onerror = null;
+                        }}
+                      />
+                      <div className="cart-item-details">
+                        <h3 className="cart-item-title">{book.Title}</h3>
+                        <p className="cart-item-author">{book.Author}</p>
+                        <p className="cart-item-isbn">ISBN: {book.ISBN13}</p>
+                        <p className="cart-item-price">
+                          {book.Price.toFixed(2)} CZK
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => removeFromCart(book.ISBN13)}
+                        className="cart-item-remove-button"
+                        disabled={isCartLoading}
+                        aria-label={`Remove ${book.Title} from cart`}
+                      >
+                        <Trash2 size={24} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="cart-pagination">
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setPage(index + 1)}
+                    className={`cart-page-button ${
+                      page === index + 1 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-200 hover:bg-gray-300'
+                    }`}
+                    aria-label={`Page ${index + 1}`}
+                    aria-current={page === index + 1 ? 'page' : undefined}
+                  >
+                    {index + 1}
+                  </button>
                 ))}
               </div>
             )}
-          </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="cart-pagination">
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setPage(index + 1)}
-                  className={`cart-page-button ${
-                    page === index + 1 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-200 hover:bg-gray-300'
-                  }`}
-                  aria-label={`Page ${index + 1}`}
-                  aria-current={page === index + 1 ? 'page' : undefined}
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Footer with Total and Checkout */}
-          {cartItems.length > 0 && (
-            <div className="cart-footer">
-              <div className="cart-footer-content">
-                <div className="cart-total">
-                  {translations[language].total}: {' '}
-                  {cartItems.reduce((total, book) => total + book.Price, 0).toFixed(2)} CZK
+            {/* Footer with Total and Checkout */}
+            {cartItems.length > 0 && (
+              <div className="cart-footer">
+                <div className="cart-footer-content">
+                  <div className="cart-total">
+                    {translations[language].total}: {' '}
+                    {cartItems.reduce((total, book) => total + book.Price, 0).toFixed(2)} CZK
+                  </div>
+                  <button 
+                    className="cart-checkout-button"
+                    onClick={() => {/* Implement checkout logic */}}
+                  >
+                    {translations[language].checkout}
+                  </button>
                 </div>
-                <button 
-                  className="cart-checkout-button"
-                  onClick={() => {/* Implement checkout logic */}}
-                >
-                  {translations[language].checkout}
-                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
