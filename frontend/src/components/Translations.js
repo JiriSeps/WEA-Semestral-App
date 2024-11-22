@@ -80,7 +80,9 @@ export const translations = {
         save: "Uložit",
         cancel: "Zrušit",
         updateError: "Při aktualizaci profilu došlo k chybě",
-        price: "Cena"
+        price: "Cena",
+        shoppingCart: "Nákupní košík",
+        total: "Celkem"
     },
     en: {
         title: "Book Store",
@@ -163,6 +165,8 @@ export const translations = {
         save: "Save",
         cancel: "Cancel",
         updateError: "Error updating profile",
-        price: "Price"
+        price: "Price",
+        shoppingCart: "Shopping cart",
+        total: "Total"
     }
 };

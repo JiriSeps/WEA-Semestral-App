@@ -110,7 +110,7 @@ def fetch_books():
             existing_book = Book.query.get(isbn10)
             
             if existing_book:
-                existing_book.is_visible = True
+                existing_book.is_visible = book.get('price', 0) > 0
                 existing_book.ISBN10 = isbn10
                 existing_book.ISBN13 = book.get('isbn13')
                 existing_book.Title = title
@@ -138,7 +138,7 @@ def fetch_books():
                     Average_Rating=book.get('average_rating'),
                     Number_of_Ratings=book.get('ratings_count'),
                     Price=book.get('price'),
-                    is_visible=True
+                    is_visible=book.get('price', 0) > 0
                 )
                 db.session.add(new_book)
                 new_books += 1

@@ -22,6 +22,9 @@ def get_cart_books_endpoint():
         error_logger.error('Chyba při získávání knih v košíku: %s', error)
         return jsonify({'error': error}), 400
         
+    # Filter out books where is_visible is False
+    filtered_books = [book for book in books if book['is_visible']]
+    
     books_data = [{
         'ISBN10': book['book'].ISBN10,
         'ISBN13': book['book'].ISBN13,
@@ -36,14 +39,14 @@ def get_cart_books_endpoint():
         'Number_of_Ratings': book['book'].Number_of_Ratings,
         'Price': book['book'].Price,
         'is_visible': book['is_visible']
-    } for book in books]
+    } for book in filtered_books]
     
     return jsonify({
         'books': books_data,
-        'total_books': total,
+        'total_books': len(filtered_books),
         'page': page,
         'per_page': per_page,
-        'total_pages': (total + per_page - 1) // per_page
+        'total_pages': (len(filtered_books) + per_page - 1) // per_page
     })
 
 @bp.route('/api/shoppingcart/<isbn>', methods=['POST'])
