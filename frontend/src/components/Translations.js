@@ -82,7 +82,8 @@ export const translations = {
         updateError: "Při aktualizaci profilu došlo k chybě",
         price: "Cena",
         shoppingCart: "Nákupní košík",
-        total: "Celkem"
+        total: "Celkem",
+        age: 'Věk',
     },
     en: {
         title: "Book Store",
@@ -167,6 +168,7 @@ export const translations = {
         updateError: "Error updating profile",
         price: "Price",
         shoppingCart: "Shopping cart",
-        total: "Total"
+        total: "Total",
+        age: 'Age',
     }
 };

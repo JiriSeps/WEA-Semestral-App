@@ -3,13 +3,36 @@ from database.book import Book
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
+def get_formatted_comments_for_book(book_isbn, page=1, per_page=10):
+    """
+    Získá formátované komentáře pro danou knihu včetně metadat pro stránkování.
+    """
+    comments, total, message = get_comments_for_book(book_isbn, page, per_page)
+    
+    if comments is None:
+        return {'error': message}
+        
+    comments_data = [{
+        'id': comment.id,
+        'text': comment.text,
+        'created_at': comment.created_at.isoformat(),
+        'user_id': comment.user_id
+    } for comment in comments]
+    
+    return {
+        'comments': comments_data,
+        'total_comments': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page
+    }
+
 def add_comment(book_isbn, user_id, text):
     """
     Přidá nový komentář ke knize.
     Kontroluje, zda je kniha viditelná před přidáním komentáře.
     """
     try:
-        # Nejprve zkontrolujeme, zda kniha existuje a je viditelná
         book = Book.query.get(book_isbn)
         if not book:
             return False, "Book not found"

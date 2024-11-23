@@ -4,6 +4,39 @@ from .user import User, favorite_books
 from datetime import datetime
 from sqlalchemy import select, exists
 
+def get_formatted_favorite_books(user_id, page=1, per_page=25):
+    """
+    Získá formátovaný seznam oblíbených knih uživatele včetně metadat pro stránkování
+    """
+    books, total, error = get_user_favorite_books(user_id, page, per_page)
+    
+    if books is None:
+        return {'error': error}
+        
+    books_data = [{
+        'ISBN10': book['book'].ISBN10,
+        'ISBN13': book['book'].ISBN13,
+        'Title': book['book'].Title,
+        'Author': book['book'].Author,
+        'Genres': book['book'].Genres,
+        'Cover_Image': book['book'].Cover_Image,
+        'Description': book['book'].Description,
+        'Year_of_Publication': book['book'].Year_of_Publication,
+        'Number_of_Pages': book['book'].Number_of_Pages,
+        'Average_Rating': book['book'].Average_Rating,
+        'Number_of_Ratings': book['book'].Number_of_Ratings,
+        'Price': book['book'].Price,
+        'is_visible': book['is_visible']
+    } for book in books]
+    
+    return {
+        'books': books_data,
+        'total_books': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page
+    }
+
 def toggle_favorite(user_id, isbn):
     """
     Přepne stav oblíbené knihy - pokud je oblíbená, odebere ji, pokud není, přidá ji
@@ -57,6 +90,9 @@ def toggle_favorite(user_id, isbn):
         return False, f"Chyba při změně stavu oblíbené knihy: {str(e)}"
 
 def get_user_favorite_books(user_id, page=1, per_page=25):
+    """
+    Získá seznam oblíbených knih uživatele
+    """
     try:
         user = User.query.get(user_id)
         if not user:

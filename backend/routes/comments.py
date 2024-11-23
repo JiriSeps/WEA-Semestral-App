@@ -1,6 +1,10 @@
 from flask import Blueprint, jsonify, request, session
-from database import db
-from database.comment_operations import add_comment, get_comments_for_book, delete_comment
+from database.comment_operations import (
+    add_comment, 
+    get_comments_for_book, 
+    delete_comment,
+    get_formatted_comments_for_book
+)
 import logging
 
 bp = Blueprint('comments', __name__)
@@ -12,26 +16,14 @@ def get_book_comments_endpoint(isbn):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
     
-    comments, total, message = get_comments_for_book(isbn, page, per_page)
+    result = get_formatted_comments_for_book(isbn, page, per_page)
     
-    if comments is None:
-        info_logger.warning('Kniha %s nebyla nalezena nebo není viditelná', isbn)
-        return jsonify({'error': message}), 404
+    if result.get('error'):
+        info_logger.warning(result['error'])
+        return jsonify({'error': result['error']}), 404
         
-    comments_data = [{
-        'id': comment.id,
-        'text': comment.text,
-        'created_at': comment.created_at.isoformat(),
-        'user_id': comment.user_id
-    } for comment in comments]
-    
-    return jsonify({
-        'comments': comments_data,
-        'total_comments': total,
-        'page': page,
-        'per_page': per_page,
-        'total_pages': (total + per_page - 1) // per_page
-    })
+    info_logger.info('Úspěšně získány komentáře pro knihu %s', isbn)
+    return jsonify(result)
 
 @bp.route('/api/comments', methods=['POST'])
 def add_book_comment_endpoint():

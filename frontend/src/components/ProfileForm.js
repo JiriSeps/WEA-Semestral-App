@@ -58,10 +58,10 @@ function ProfileForm({ onUpdate, translations, language, onClose, userData }) {
         favorite_genres: userData.favorite_genres || [],
         referral_source: userData.referral_source || ''
       });
-      
+
       // Kontrola, zda jsou adresy stejné
       const personalAddressFields = ['street', 'city', 'postal_code', 'country'];
-      const addressesMatch = personalAddressFields.every(field => 
+      const addressesMatch = personalAddressFields.every(field =>
         userData.personal_address?.[field] === userData.billing_address?.[field]
       );
       setSameAsPersonal(addressesMatch);
@@ -236,7 +236,9 @@ function ProfileForm({ onUpdate, translations, language, onClose, userData }) {
               </label>
             </div>
 
+            <label htmlFor="age">{translations[language].age}</label>
             <input
+              id="age" 
               type="number"
               name="age"
               value={formData.age}
@@ -252,12 +254,12 @@ function ProfileForm({ onUpdate, translations, language, onClose, userData }) {
           <div className="form-section genres-section">
             <div className="genres-field">
               <label>{translations[language].favoriteGenres}</label>
-              <button 
-                type="button" 
-                className="genres-dropdown-button" 
+              <button
+                type="button"
+                className="genres-dropdown-button"
                 onClick={toggleGenres}
               >
-                {translations[language].genres} 
+                {translations[language].genres}
                 ({formData.favorite_genres.length} {translations[language].selected})
                 <span className={`arrow ${isGenresOpen ? 'up' : 'down'}`}>▼</span>
               </button>
