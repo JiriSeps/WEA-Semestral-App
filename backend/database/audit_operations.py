@@ -3,7 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
 def create_audit_log(event_type: AuditEventType, username: str, book_isbn: str = None, 
-                    book_title: str = None, additional_data: dict = None) -> tuple[bool, str]:
+                    additional_data: dict = None) -> tuple[bool, str]:
     """
     Vytvoří nový auditní záznam.
     """
@@ -11,8 +11,7 @@ def create_audit_log(event_type: AuditEventType, username: str, book_isbn: str =
         new_audit = AuditLog(
             event_type=event_type,
             username=username,
-            book_isbn=book_isbn,
-            book_title=book_title,
+            book_isbn=book_isbn,  # Už nepotřebujeme book_title
             additional_data=additional_data,
             timestamp=datetime.utcnow()
         )

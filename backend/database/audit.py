@@ -20,11 +20,12 @@ class AuditLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_type = db.Column(db.Enum(AuditEventType), nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    username = db.Column(db.String(80), nullable=False)  # může být 'SYSTEM' pro systémové události
+    username = db.Column(db.String(80), nullable=False)
     
-    # Údaje o knize (pokud se událost týká knihy)
-    book_isbn = db.Column(db.String(13), nullable=True)
-    book_title = db.Column(db.String(200), nullable=True)
+    # Foreign key na knihu
+    book_isbn = db.Column(db.String(10), db.ForeignKey('book.ISBN10'), nullable=True)
+    # Relationship pro snadnější přístup k datům knihy
+    book = db.relationship('Book', backref=db.backref('audit_logs', lazy=True))
     
     # Pro další informace
     additional_data = db.Column(db.JSON, nullable=True)
