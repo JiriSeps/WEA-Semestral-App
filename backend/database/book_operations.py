@@ -1,7 +1,9 @@
 import csv
 import os
 from sqlalchemy import or_
-from database.book import db, Book
+from database.genre import Genre
+from database.genre_operations import filter_books_by_genres, update_book_genres
+from database.book import db, Book, book_genres
 from database.user import favorite_books
 from database.audit import AuditEventType
 from database.audit_operations import create_audit_log
@@ -46,9 +48,7 @@ def search_books(title=None, authors=None, isbn=None, genres=None, page=1, per_p
             )
         
         if genres:
-            genre_terms = [genre.strip() for genre in genres.split(';') if genre.strip()]
-            for genre in genre_terms:
-                query = query.filter(Book.Genres.ilike(f'%{genre}%'))
+            query = filter_books_by_genres(query, genres)
 
         total = query.count()
         books = query.order_by(Book.Title).offset((page - 1) * per_page).limit(per_page).all()
@@ -98,12 +98,15 @@ def fetch_and_update_books(books_data):
                 continue
                 
             existing_book = Book.query.get(isbn10)
+            categories = book.get('categories', '')  # Získáme žánry z dat knihy
             
             if existing_book:
                 _update_existing_book(existing_book, book)
+                update_book_genres(existing_book, categories)  # Aktualizujeme žánry
                 updated_books += 1
             else:
                 new_book = _create_new_book(book)
+                update_book_genres(new_book, categories)  # Nastavíme žánry
                 db.session.add(new_book)
                 new_books += 1
                 newly_added_books.add(isbn10)
@@ -114,8 +117,7 @@ def fetch_and_update_books(books_data):
                     username="CDB_SYSTEM",
                     book_isbn=isbn10,
                     additional_data={
-                        "author": new_book.Author,
-                        "genres": new_book.Genres
+                        "author": new_book.Author
                     }
                 )
 
@@ -128,13 +130,14 @@ def fetch_and_update_books(books_data):
         db.session.rollback()
         raise e
 
+
 def _format_books_data(books):
     return [{
         'ISBN10': book.ISBN10,
         'ISBN13': book.ISBN13,
         'Title': book.Title,
         'Author': book.Author,
-        'Genres': book.Genres,
+        'Genres': [genre.name for genre in book.genres],  # Seznam názvů žánrů
         'Cover_Image': book.Cover_Image,
         'Description': book.Description,
         'Year_of_Publication': book.Year_of_Publication,
@@ -151,7 +154,7 @@ def _format_book_data(book, is_favorite=False):
         'ISBN13': book.ISBN13,
         'Title': book.Title,
         'Author': book.Author,
-        'Genres': book.Genres,
+        'Genres': [genre.name for genre in book.genres],  # Seznam názvů žánrů
         'Cover_Image': book.Cover_Image,
         'Description': book.Description,
         'Year_of_Publication': book.Year_of_Publication,
@@ -167,7 +170,6 @@ def _update_existing_book(book, data):
     book.ISBN13 = data.get('isbn13')
     book.Title = data.get('title')
     book.Author = data.get('authors') if isinstance(data.get('authors'), str) else '; '.join(data.get('authors', []))
-    book.Genres = data.get('categories')
     book.Cover_Image = data.get('thumbnail')
     book.Description = data.get('description')
     book.Year_of_Publication = data.get('published_year')
@@ -182,7 +184,6 @@ def _create_new_book(data):
         ISBN13=data.get('isbn13'),
         Title=data.get('title'),
         Author=data.get('authors') if isinstance(data.get('authors'), str) else '; '.join(data.get('authors', [])),
-        Genres=data.get('categories'),
         Cover_Image=data.get('thumbnail'),
         Description=data.get('description'),
         Year_of_Publication=data.get('published_year'),
@@ -191,7 +192,9 @@ def _create_new_book(data):
         Number_of_Ratings=data.get('ratings_count'),
         Price=data.get('price'),
         is_visible=data.get('price', 0) > 0
+        # Žánry se nastavují zvlášť pomocí update_book_genres
     )
+
 
 def _create_audit_logs(previously_visible_books, new_visible_isbns, newly_added_books):
     # Zaznamenání skrytých knih
@@ -214,23 +217,25 @@ def _create_audit_logs(previously_visible_books, new_visible_isbns, newly_added_
                     book_isbn=isbn
                 )
 
-# Ponecháváme původní funkci get_all_unique_genres, protože je již správně implementována
 def get_all_unique_genres():
+    """
+    Získá všechny unikátní žánry z aktivních knih.
+    
+    Returns:
+        List[str]: Seřazený seznam názvů žánrů
+    """
     try:
-        books_with_genres = Book.query.filter(
-            Book.Genres.isnot(None),
-            Book.Genres != '',
-            Book.is_visible == True
-        ).with_entities(Book.Genres).all()
+        # Získáme všechny žánry, které mají alespoň jednu viditelnou knihu
+        active_genres = Genre.query\
+            .join(book_genres)\
+            .join(Book)\
+            .filter(Book.is_visible == True)\
+            .distinct()\
+            .order_by(Genre.name)\
+            .all()
         
-        unique_genres = set()
-        
-        for book in books_with_genres:
-            if book.Genres:
-                genres = [genre.strip() for genre in book.Genres.split(';') if genre.strip()]
-                unique_genres.update(genres)
-        
-        return sorted(list(unique_genres))
+        # Vrátíme seřazený seznam názvů žánrů
+        return [genre.name for genre in active_genres]
     except SQLAlchemyError as e:
         print(f"Error getting unique genres: {str(e)}")
         return []

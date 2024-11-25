@@ -2,6 +2,9 @@ from database.user import db, User, Gender
 from database.book import Book
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from database.genre import Genre
+
+# user_operations.py
 
 def format_user_data(user):
     """Helper funkce pro formátování dat uživatele"""
@@ -24,7 +27,7 @@ def format_user_data(user):
         'gdpr_consent': user.gdpr_consent,
         'gender': user.gender.value if user.gender else None,
         'age': user.age,
-        'favorite_genres': user.favorite_genres,
+        'favorite_genres': [genre.name for genre in user.favorite_genres],  # Seznam názvů oblíbených žánrů
         'referral_source': user.referral_source
     }
 
@@ -119,7 +122,24 @@ def update_user_profile(user_id, data):
         
         # Oblíbené žánry
         if 'favorite_genres' in data:
-            user.favorite_genres = data['favorite_genres']
+            genre_names = data['favorite_genres']
+            if isinstance(genre_names, list):
+                # Najdeme všechny existující žánry podle jejich názvů
+                genres = Genre.query.filter(Genre.name.in_(genre_names)).all()
+                
+                # Vytvoříme slovník pro rychlé vyhledávání existujících žánrů
+                existing_genres = {genre.name: genre for genre in genres}
+                
+                # Vytvoříme nové žánry pro ty, které ještě neexistují
+                new_genres = []
+                for name in genre_names:
+                    if name not in existing_genres:
+                        new_genre = Genre(name=name, is_active=True)
+                        db.session.add(new_genre)
+                        new_genres.append(new_genre)
+                
+                # Aktualizujeme oblíbené žánry uživatele
+                user.favorite_genres = list(existing_genres.values()) + new_genres
         
         # Zdroj reference
         if 'referral_source' in data:

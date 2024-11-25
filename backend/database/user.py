@@ -25,11 +25,15 @@ class User(db.Model):
     billing_country = db.Column(db.String(100))
     
     # Osobní údaje
-    gdpr_consent = db.Column(db.Boolean, default=False, nullable=True)  # Změněno zde
+    gdpr_consent = db.Column(db.Boolean, default=False, nullable=True)
     gdpr_consent_date = db.Column(db.DateTime, nullable=True)
     gender = db.Column(db.Enum(Gender), nullable=True)
     age = db.Column(db.Integer, nullable=True)
-    favorite_genres = db.Column(db.JSON, default=list)
+    favorite_genres = db.relationship('Genre',
+        secondary='user_favorite_genres',
+        lazy='dynamic',
+        backref=db.backref('users_who_favorite', lazy='dynamic')
+    )
     referral_source = db.Column(db.String(200))
 
     # Vztah k oblíbeným knihám
@@ -61,4 +65,11 @@ books_in_cart = db.Table('books_in_cart',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('book_isbn10', db.String(10), db.ForeignKey('book.ISBN10'), primary_key=True),
     db.Column('added_at', db.DateTime, default=db.func.current_timestamp())
+)
+
+# Vazební tabulka pro oblíbené žánry
+user_favorite_genres = db.Table('user_favorite_genres',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), primary_key=True),
+    db.Column('added_at', db.DateTime, default=datetime.utcnow)
 )
