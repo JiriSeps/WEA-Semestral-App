@@ -83,7 +83,7 @@ def get_book_by_isbn(isbn, user_id=None):
 
 def fetch_and_update_books(books_data):
     try:
-        previously_visible_books = {book.ISBN10: book.Title for book in Book.query.filter_by(is_visible=True).all()}
+        previously_visible_books = {book.ISBN10 for book in Book.query.filter_by(is_visible=True).all()}
         new_visible_isbns = {book['isbn10'] for book in books_data if book.get('isbn10')}
         newly_added_books = set()
         
@@ -97,7 +97,6 @@ def fetch_and_update_books(books_data):
             if not isbn10:
                 continue
                 
-            title = book.get('title')
             existing_book = Book.query.get(isbn10)
             
             if existing_book:
@@ -109,11 +108,11 @@ def fetch_and_update_books(books_data):
                 new_books += 1
                 newly_added_books.add(isbn10)
                 
+                # Záznam o přidání nové knihy - už bez book_title
                 create_audit_log(
                     event_type=AuditEventType.BOOK_ADD,
                     username="CDB_SYSTEM",
                     book_isbn=isbn10,
-                    book_title=title,
                     additional_data={
                         "author": new_book.Author,
                         "genres": new_book.Genres
@@ -195,15 +194,16 @@ def _create_new_book(data):
     )
 
 def _create_audit_logs(previously_visible_books, new_visible_isbns, newly_added_books):
-    for isbn, title in previously_visible_books.items():
+    # Zaznamenání skrytých knih
+    for isbn in previously_visible_books:
         if isbn not in new_visible_isbns:
             create_audit_log(
                 event_type=AuditEventType.BOOK_HIDE,
                 username="CDB_SYSTEM",
-                book_isbn=isbn,
-                book_title=title
+                book_isbn=isbn
             )
-            
+    
+    # Zaznamenání nově zobrazených knih
     for isbn in new_visible_isbns:
         if isbn not in previously_visible_books and isbn not in newly_added_books:
             book = Book.query.get(isbn)
@@ -211,8 +211,7 @@ def _create_audit_logs(previously_visible_books, new_visible_isbns, newly_added_
                 create_audit_log(
                     event_type=AuditEventType.BOOK_SHOW,
                     username="CDB_SYSTEM",
-                    book_isbn=isbn,
-                    book_title=book.Title
+                    book_isbn=isbn
                 )
 
 # Ponecháváme původní funkci get_all_unique_genres, protože je již správně implementována
