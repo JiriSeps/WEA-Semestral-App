@@ -22,7 +22,7 @@ def get_formatted_shopping_cart(user_id, page=1, per_page=25):
         'ISBN13': book['book'].ISBN13,
         'Title': book['book'].Title,
         'Author': book['book'].Author,
-        'Genres': book['book'].Genres,
+        'Genres': [genre.name for genre in book['book'].genres],
         'Cover_Image': book['book'].Cover_Image,
         'Description': book['book'].Description,
         'Year_of_Publication': book['book'].Year_of_Publication,
