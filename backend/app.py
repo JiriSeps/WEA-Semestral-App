@@ -4,6 +4,7 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_session import Session
 from database import db
 
 # Import blueprintů
@@ -37,20 +38,28 @@ def setup_logging(app):
 
 def create_app():
     app = Flask(__name__)
+    
+    # CORS configuration
     CORS(app, supports_credentials=True, origins=["http://localhost:3007"])
 
-    # Konfigurace aplikace
+    # Application configuration
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@db:5432/mydatabase'
-    app.config['SECRET_KEY'] = 'your_secret_key_here'
+    app.config['SECRET_KEY'] = os.urandom(24)  # More secure random secret key
     
-    # Inicializace
+    # Session configuration
+    app.config['SESSION_TYPE'] = 'filesystem'
+    app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(__file__), 'sessions')
+    os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
+    
+    # Initialize extensions
     db.init_app(app)
     migrate = Migrate(app, db)
+    Session(app)  # Initialize Flask-Session
     
-    # Nastavení logování
+    # Setup logging
     setup_logging(app)
     
-    # Registrace blueprintů
+    # Register blueprints
     app.register_blueprint(books.bp)
     app.register_blueprint(users.bp)
     app.register_blueprint(comments.bp)
@@ -60,7 +69,7 @@ def create_app():
     
     return app
 
-# Základní endpoint pro kontrolu běhu aplikace
+# Create app instance
 app = create_app()
 
 @app.route('/')
@@ -68,7 +77,7 @@ def hello_world():
     app.logger.info('Přístup na hlavní stránku')
     return 'Hello, World!'
 
-# Inicializace databáze
+# Database initialization
 with app.app_context():
     try:
         db.create_all()

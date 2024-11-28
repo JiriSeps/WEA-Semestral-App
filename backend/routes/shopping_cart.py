@@ -12,14 +12,11 @@ info_logger = logging.getLogger('info_logger')
 
 @bp.route('/api/shoppingcart', methods=['GET'])
 def get_cart_books_endpoint():
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Uživatel není přihlášen'}), 401
-        
+    # No need for user_id anymore, we use session directly
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     
-    result = get_formatted_shopping_cart(user_id, page, per_page)
+    result = get_formatted_shopping_cart(page, per_page)
     
     if result.get('error'):
         error_logger.error('Chyba při získávání knih v košíku: %s', result['error'])
@@ -29,11 +26,8 @@ def get_cart_books_endpoint():
 
 @bp.route('/api/shoppingcart/<isbn>', methods=['POST'])
 def toggle_cart_book_endpoint(isbn):
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Uživatel není přihlášen'}), 401
-        
-    result = toggle_cart(user_id, isbn)
+    # No need for user_id anymore, we use session directly
+    result = toggle_cart(isbn)
     
     if result.get('error'):
         info_logger.warning(
@@ -42,16 +36,13 @@ def toggle_cart_book_endpoint(isbn):
         )
         return jsonify({'error': result['error']}), 400
     
-    info_logger.info('Změněn stav knihy v košíku %s pro uživatele %s', isbn, user_id)
+    info_logger.info('Změněn stav knihy v košíku %s', isbn)
     return jsonify(result), 200
 
 @bp.route('/api/shoppingcart/<isbn>/status', methods=['GET'])
 def check_cart_status_endpoint(isbn):
-    user_id = session.get('user_id')
-    if not user_id:
-        return jsonify({'error': 'Uživatel není přihlášen'}), 401
-        
-    result = is_book_in_shopping_cart(user_id, isbn)
+    # No need for user_id anymore, we use session directly
+    result = is_book_in_shopping_cart(isbn)
     
     if result.get('error'):
         info_logger.warning(
