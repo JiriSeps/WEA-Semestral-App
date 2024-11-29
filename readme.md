@@ -54,7 +54,7 @@
 
 ---
 
-### 🛠 cv08
+### ✅ cv08
 - **Další osobní údaje pro uživatele** - ✅ Hotovo
 - **Audit** - ✅ Hotovo
 - **Refractor** - ✅ Hotovo
