@@ -57,13 +57,13 @@
 ### 🛠 cv08
 - **Další osobní údaje pro uživatele** - ✅ Hotovo
 - **Audit** - ✅ Hotovo
-- **Refractor** - ❌ Dodělat
+- **Refractor** - ✅ Hotovo
 
 ---
 
 ### 🛠 cv09
-- **Dokončit Audit** - ❓Asi hotovo
-- **Refractor** - ❌ Dodělat
+- **Dokončit Audit** - ✅ Hotovo
+- **Refractor** - ✅ Hotovo
 - **Košík** - ✅ Hotovo
 - **Upravit vzhled pro hodnoceni (barevné hvězdy) a tlačítko košíku** - ✅ Hotovo
 
