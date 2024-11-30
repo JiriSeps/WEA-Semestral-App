@@ -346,6 +346,10 @@ function OrderForm({ onSubmit, translations, language, onClose, userData, cartIt
 
           {error && <div className="error">{error}</div>}
 
+          {/* Error a Success zprávy */}
+          {error && <div className="error">{error}</div>}
+          {successMessage && <div className="success-message">{successMessage}</div>}
+          
           {/* Tlačítka */}
           <div className="form-buttons">
             <button type="submit" className="save-button">
@@ -356,9 +360,6 @@ function OrderForm({ onSubmit, translations, language, onClose, userData, cartIt
             </button>
           </div>
 
-          {/* Error a Success zprávy */}
-          {error && <div className="error">{error}</div>}
-          {successMessage && <div className="success-message">{successMessage}</div>}
         </form>
       </div>
     </div>
