@@ -1413,3 +1413,210 @@ tr.book-unavailable:hover {
     justify-self: end;
   }
 }
+
+/* Order Form Styles */
+.order-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.order-form {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 800px;
+  margin-top: 20px;
+}
+
+/* Payment Methods Section */
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 15px 0;
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.payment-methods label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.payment-methods label:hover {
+  background-color: #e9ecef;
+}
+
+.payment-methods input[type="radio"] {
+  width: 18px;
+  height: 18px;
+}
+
+/* Price Summary Section */
+.price-summary {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.price-summary div {
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #495057;
+}
+
+.total-price {
+  font-size: 20px !important;
+  font-weight: 700;
+  color: #2d3748 !important;
+  border-top: 1px solid #dee2e6;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+/* Email Section */
+.email-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.email-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Section Titles */
+.order-form h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Form Section Spacing */
+.order-form .form-section {
+  margin-bottom: 30px;
+}
+
+/* GDPR Section */
+.order-form .gdpr-consent {
+  margin: 25px 0;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+/* Error Message */
+.order-form .error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 15px 0;
+  font-size: 14px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .order-form {
+    padding: 20px;
+    margin-top: 10px;
+  }
+
+  .payment-methods {
+    padding: 15px;
+  }
+
+  .price-summary {
+    padding: 15px;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+  }
+
+  .save-button, .cancel-button {
+    width: 100%;
+  }
+
+  .payment-methods label {
+    padding: 8px;
+  }
+}
+
+/* Buttons */
+.order-form .form-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 25px;
+}
+
+.order-form .save-button {
+  background-color: #4299e1;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 6px;
+}
+
+.order-form .save-button:hover {
+  background-color: #3182ce;
+}
+
+.order-form .cancel-button {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.order-form .cancel-button:hover {
+  background-color: #c53030;
+}
+
+.form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 15px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-label input {
+  margin-top: 4px;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+}

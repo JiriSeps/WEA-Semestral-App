@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Trash2 } from 'lucide-react';
+import OrderForm from './OrderForm';
 
 const ShoppingCart = ({ 
   language, 
@@ -14,6 +15,7 @@ const ShoppingCart = ({
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
   const [isCartLoading, setIsCartLoading] = useState(false);
+  const [showOrderForm, setShowOrderForm] = useState(false);
 
   const fetchCartItems = async () => {
     if (!user) return;
@@ -85,6 +87,31 @@ const ShoppingCart = ({
     }
   };
 
+  const handleCheckout = () => {
+    setShowOrderForm(true);
+  };
+
+  const handleOrderSubmit = async (orderData) => {
+    try {
+      setStatusMessage({
+        type: 'success',
+        text: translations[language].orderSuccess
+      });
+      
+      await fetchCartItems();
+      setShowOrderForm(false);
+    } catch (error) {
+      setStatusMessage({
+        type: 'error',
+        text: translations[language].orderError
+      });
+    }
+  };
+
+  const handleOrderClose = () => {
+    setShowOrderForm(false);
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -110,11 +137,12 @@ const ShoppingCart = ({
       <div className="cart-page-container">
         {/* Back Button */}
         <button
-            onClick={onBackToList}
-            className="cart-back-button"
-          >
-            ← {translations[language].back}
-          </button>
+          onClick={onBackToList}
+          className="cart-back-button"
+        >
+          ← {translations[language].back}
+        </button>
+
         <div className="cart-content-wrapper">
           {/* Status Message */}
           {statusMessage && (
@@ -213,7 +241,7 @@ const ShoppingCart = ({
                   </div>
                   <button 
                     className="cart-checkout-button"
-                    onClick={() => {/* Implement checkout logic */}}
+                    onClick={handleCheckout}
                   >
                     {translations[language].checkout}
                   </button>
@@ -222,6 +250,18 @@ const ShoppingCart = ({
             )}
           </div>
         </div>
+
+        {/* Order Form Modal */}
+        {showOrderForm && (
+          <OrderForm
+            onSubmit={handleOrderSubmit}
+            onClose={handleOrderClose}
+            translations={translations}
+            language={language}
+            userData={user}
+            cartItems={cartItems}
+          />
+        )}
       </div>
     </div>
   );

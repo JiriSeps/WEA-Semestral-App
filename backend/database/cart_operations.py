@@ -110,6 +110,25 @@ def toggle_cart(isbn):
         }
     except Exception as e:
         return {'error': f'Chyba při změně stavu knihy v košíku: {str(e)}'}
+    
+def clear_shopping_cart():
+    """
+    Clears the entire shopping cart after successful order
+    """
+    try:
+        # Vymazání košíku ze session
+        session['shopping_cart'] = []
+        session.modified = True
+        
+        return {
+            'message': 'Košík byl úspěšně vyprázdněn',
+            'success': True
+        }
+    except Exception as e:
+        return {
+            'error': f'Chyba při mazání košíku: {str(e)}',
+            'success': False
+        }
 
 def is_book_in_shopping_cart(isbn):
     """

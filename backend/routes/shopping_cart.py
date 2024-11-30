@@ -2,7 +2,8 @@ from flask import Blueprint, jsonify, request, session
 from database.cart_operations import (
     toggle_cart,
     get_formatted_shopping_cart,
-    is_book_in_shopping_cart
+    is_book_in_shopping_cart,
+    clear_shopping_cart
 )
 import logging
 
@@ -52,3 +53,20 @@ def check_cart_status_endpoint(isbn):
         return jsonify({'error': result['error']}), 400
         
     return jsonify(result)
+
+@bp.route('/api/shoppingcart', methods=['DELETE'])
+def clear_cart_endpoint():
+    """Endpoint pro vymazání celého košíku"""
+    try:
+        result = clear_shopping_cart()
+        
+        if result.get('error'):
+            error_logger.error('Chyba při mazání košíku: %s', result['error'])
+            return jsonify({'error': result['error']}), 400
+            
+        info_logger.info('Košík byl úspěšně vyprázdněn')
+        return jsonify({'message': 'Košík byl úspěšně vyprázdněn'}), 200
+        
+    except Exception as e:
+        error_logger.error('Neočekávaná chyba při mazání košíku: %s', str(e))
+        return jsonify({'error': 'Neočekávaná chyba při mazání košíku'}), 500

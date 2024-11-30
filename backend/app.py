@@ -8,7 +8,7 @@ from flask_session import Session
 from database import db
 
 # Import blueprintů
-from routes import books, users, comments, ratings, favorites, shopping_cart
+from routes import books, users, comments, ratings, favorites, shopping_cart, orders
 
 def setup_logging(app):
     log_dir = os.path.join(os.path.dirname(__file__), 'logs')
@@ -66,6 +66,7 @@ def create_app():
     app.register_blueprint(ratings.bp)
     app.register_blueprint(favorites.bp)
     app.register_blueprint(shopping_cart.bp)
+    app.register_blueprint(orders.bp)
     
     return app
 
