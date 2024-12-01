@@ -14,7 +14,7 @@ def calculate_payment_fee(payment_method, subtotal):
 
 def create_order(user_id, cart_items, email, shipping_address, billing_address, payment_method, payment_fee, total_price):
     """
-    Creates a new order
+    Creates a new order with GDPR consent from order form
     """
     try:
         # Ověření existence uživatele
@@ -22,8 +22,7 @@ def create_order(user_id, cart_items, email, shipping_address, billing_address, 
         if not user:
             return {'error': 'Uživatel neexistuje'}
         
-        if not user.gdpr_consent:
-            return {'error': 'Pro vytvoření objednávky je nutný GDPR souhlas'}
+        # Odstranit GDPR kontrolu z user profilu - používáme souhlas z formuláře
 
         # Vytvoření objednávky
         new_order = Order(
@@ -40,7 +39,7 @@ def create_order(user_id, cart_items, email, shipping_address, billing_address, 
             payment_method=PaymentMethod[payment_method.upper()],
             payment_fee=payment_fee,
             total_price=total_price,
-            gdpr_consent=True,
+            gdpr_consent=True,  # Vždy True, protože formulář to vyžaduje
             gdpr_consent_date=datetime.utcnow(),
             status=OrderStatus.PENDING
         )

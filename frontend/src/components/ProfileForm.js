@@ -305,7 +305,6 @@ function ProfileForm({ onUpdate, translations, language, onClose, userData }) {
                 name="gdpr_consent"
                 checked={formData.gdpr_consent}
                 onChange={handleChange}
-                required
               />
               <span>{translations[language].gdprConsent}</span>
             </label>

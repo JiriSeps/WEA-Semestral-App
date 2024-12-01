@@ -100,9 +100,6 @@ def update_profile():
     if not data:
         return jsonify({'error': 'Nebyla poskytnuta žádná data k aktualizaci'}), 400
 
-    if 'gdpr_consent' in data and not data['gdpr_consent']:
-        return jsonify({'error': 'Pro používání služby je nutný souhlas s GDPR'}), 400
-
     result = update_user_profile(user_id, data)
     
     if result.get('error'):

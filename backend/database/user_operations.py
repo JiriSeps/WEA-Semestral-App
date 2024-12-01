@@ -102,10 +102,13 @@ def update_user_profile(user_id, data):
         user.billing_country = data.get('billing_country')
         
         # GDPR souhlas
+        # GDPR souhlas
         if 'gdpr_consent' in data:
             user.gdpr_consent = bool(data['gdpr_consent'])
             if user.gdpr_consent:
                 user.gdpr_consent_date = datetime.utcnow()
+            else:
+                user.gdpr_consent_date = None  # Když odebíráme souhlas, vymažeme i datum
         
         # Gender
         if 'gender' in data:
