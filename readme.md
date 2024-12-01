@@ -64,7 +64,7 @@
 
 ### 🛠 cv09
 - **Košík** - ✅ Hotovo
-- **Tlačítko a formulář objednávky** - ❌ Dodělat
+- **Tlačítko a formulář objednávky** - ✅ Hotovo
 
 ---
 
