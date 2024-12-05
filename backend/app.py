@@ -43,7 +43,7 @@ def create_app():
     CORS(app, supports_credentials=True, origins=["http://localhost:3007"])
 
     # Application configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://user:password@db:5432/mydatabase'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://user:password@db:5432/mydatabase')
     app.config['SECRET_KEY'] = os.urandom(24)  # More secure random secret key
     
     # Session configuration

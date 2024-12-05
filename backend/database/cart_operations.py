@@ -1,16 +1,22 @@
-from .book import Book
+# In cart_operations.py
 from flask import session
+from .book import Book
 from datetime import datetime
 
 def get_formatted_shopping_cart(page=1, per_page=25):
     """
     Gets a formatted list of books in the shopping cart with pagination.
-    Returns only visible books from the session.
+    Uses the current user's session.
     """
-    # Get cart from session, defaulting to empty list
-    cart = session.get('shopping_cart', [])
+    # Ensure user is logged in
+    user_id = session.get('user_id')
+    if not user_id:
+        return {'error': 'Uživatel není přihlášen'}
+
+    # Get cart from session using user-specific key
+    cart_key = f'shopping_cart_{user_id}'
+    cart = session.get(cart_key, [])
     
-    # Filter only visible books
     try:
         filtered_books = []
         for cart_item in cart:
@@ -54,18 +60,25 @@ def get_formatted_shopping_cart(page=1, per_page=25):
             'total_books': len(filtered_books),
             'page': page,
             'per_page': per_page,
-            'total_pages': (len(filtered_books) + per_page - 1) // per_page
+            'total_pages': (len(filtered_books) + per_page - 1) // per_page,
+            'message': 'Košík byl úspěšně načten'
         }
     except Exception as e:
         return {'error': f'Chyba při získávání knih v košíku: {str(e)}'}
 
 def toggle_cart(isbn):
     """
-    Toggles book state in the cart - adds or removes based on current state
+    Toggles book state in the cart for the current user
     """
+    # Ensure user is logged in
+    user_id = session.get('user_id')
+    if not user_id:
+        return {'error': 'Uživatel není přihlášen'}
+
     try:
-        # Get current cart from session, default to empty list
-        cart = session.get('shopping_cart', [])
+        # Get user-specific cart from session
+        cart_key = f'shopping_cart_{user_id}'
+        cart = session.get(cart_key, [])
         
         # Find the book
         book = Book.query.filter(
@@ -95,8 +108,8 @@ def toggle_cart(isbn):
             action = 'přidána do'
             is_in_cart = True
         
-        # Update session
-        session['shopping_cart'] = cart
+        # Update user-specific session
+        session[cart_key] = cart
         session.modified = True
         
         return {
@@ -110,14 +123,20 @@ def toggle_cart(isbn):
         }
     except Exception as e:
         return {'error': f'Chyba při změně stavu knihy v košíku: {str(e)}'}
-    
+
 def clear_shopping_cart():
     """
-    Clears the entire shopping cart after successful order
+    Clears the entire shopping cart for the current user after successful order
     """
+    # Ensure user is logged in
+    user_id = session.get('user_id')
+    if not user_id:
+        return {'error': 'Uživatel není přihlášen'}
+
     try:
-        # Vymazání košíku ze session
-        session['shopping_cart'] = []
+        # Clear user-specific cart from session
+        cart_key = f'shopping_cart_{user_id}'
+        session[cart_key] = []
         session.modified = True
         
         return {
@@ -132,11 +151,17 @@ def clear_shopping_cart():
 
 def is_book_in_shopping_cart(isbn):
     """
-    Checks if a book is in the shopping cart
+    Checks if a book is in the shopping cart for the current user
     """
+    # Ensure user is logged in
+    user_id = session.get('user_id')
+    if not user_id:
+        return {'error': 'Uživatel není přihlášen'}
+
     try:
-        # Get current cart from session, default to empty list
-        cart = session.get('shopping_cart', [])
+        # Get user-specific cart from session
+        cart_key = f'shopping_cart_{user_id}'
+        cart = session.get(cart_key, [])
         
         # Find the book
         book = Book.query.filter(

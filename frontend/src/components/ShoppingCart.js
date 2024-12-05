@@ -58,12 +58,16 @@ const ShoppingCart = ({
 
     setIsCartLoading(true);
     try {
-      const response = await axios.post(`http://localhost:8007/api/shoppingcart/${isbn}`, null, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+      const response = await axios.post(
+        `http://localhost:8007/api/shoppingcart/${isbn}`, 
+        null,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
-      });
+      );;
       
       if (response.data.is_in_cart === false) {
         await fetchCartItems();
