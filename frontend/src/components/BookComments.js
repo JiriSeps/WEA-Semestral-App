@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const BookComments = ({ isbn, translations, language, user }) => {
   const [comments, setComments] = useState([]);
@@ -13,7 +14,7 @@ const BookComments = ({ isbn, translations, language, user }) => {
 
   const fetchComments = async () => {
     try {
-      const response = await axios.get(`http://localhost:8007/api/comments/${isbn}`);
+      const response = await axios.get(`${API_BASE_URL}/api/comments/${isbn}`);
       setComments(response.data.comments);
       setLoading(false);
     } catch (err) {
@@ -27,7 +28,7 @@ const BookComments = ({ isbn, translations, language, user }) => {
     if (!newComment.trim()) return;
 
     try {
-      await axios.post('http://localhost:8007/api/comments', {
+      await axios.post(`${API_BASE_URL}/api/comments`, {
         book_isbn: isbn,
         text: newComment
       });

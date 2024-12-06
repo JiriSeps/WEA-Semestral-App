@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 function RegisterForm({ onRegister, translations, language }) {
   const [username, setUsername] = useState('');
@@ -17,7 +18,7 @@ function RegisterForm({ onRegister, translations, language }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8007/api/register', { username, password, name });
+      await axios.post(`${API_BASE_URL}/api/register`, { username, password, name });
       onRegister();
     } catch (error) {
       setError(translations[language].registerError);

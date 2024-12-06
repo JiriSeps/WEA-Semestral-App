@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Trash2 } from 'lucide-react';
 import OrderForm from './OrderForm';
+import { API_BASE_URL } from '../config';
 
 const ShoppingCart = ({ 
   language, 
@@ -22,7 +23,7 @@ const ShoppingCart = ({
   
     setIsLoading(true);
     try {
-      const response = await axios.get('http://localhost:8007/api/shoppingcart', {
+      const response = await axios.get(`${API_BASE_URL}/api/shoppingcart`, {
         params: { page },
         headers: {
           'Accept': 'application/json'
@@ -59,7 +60,7 @@ const ShoppingCart = ({
     setIsCartLoading(true);
     try {
       const response = await axios.post(
-        `http://localhost:8007/api/shoppingcart/${isbn}`, 
+        `${API_BASE_URL}/api/shoppingcart/${isbn}`, 
         null,
         {
           headers: {

@@ -10,6 +10,7 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ProfileForm from './components/ProfileForm';
 import ShoppingCart from './components/ShoppingCart';
+import { API_BASE_URL } from './config';
 
 import './App.css';
 axios.defaults.withCredentials = true; 
@@ -63,7 +64,7 @@ function App() {
       favorites: showFavorites  // Přidáme parametr pro oblíbené
     });
   
-    axios.get(`http://localhost:8007/api/books?${queryParams.toString()}`)
+    axios.get(`${API_BASE_URL}/api/books?${queryParams.toString()}`)
       .then(response => {
         setBooks(response.data.books);
         setTotalPages(response.data.total_pages);
@@ -78,7 +79,7 @@ function App() {
 
   const checkLoggedInUser = async () => {
     try {
-      const response = await axios.get('http://localhost:8007/api/user');
+      const response = await axios.get(`${API_BASE_URL}/api/user`);
       setUser(response.data.user);
     } catch (error) {
       console.error("Error checking logged in user", error);
@@ -143,7 +144,7 @@ function App() {
       setUser(userData);
       
       // Pak ihned fetchneme kompletní user data
-      const response = await axios.get('http://localhost:8007/api/user');
+      const response = await axios.get(`${API_BASE_URL}/api/user`);
       setUser(response.data.user);  // Nastavíme kompletní data
       
       setShowLoginForm(false);
@@ -160,7 +161,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:8007/api/logout');
+      await axios.post(`${API_BASE_URL}/api/logout`);
       setUser(null);
       setShowFavorites(false); // Přepnout zpět na všechny knihy při odhlášení
     } catch (error) {

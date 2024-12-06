@@ -34,11 +34,11 @@ RUN mkdir -p migrations
 # Spuštění aplikace a migrací v jednom příkazu
 CMD ["bash", "-c", "\
     echo 'Waiting for database...' && \
-    wait-for-it db:5432 -t 60 && \
+    wait-for-it sk08-db -t 60 && \
     echo 'Removing existing migrations directory if it exists...' && \
     rm -rf migrations && \
     echo 'Running database migrations...' && \
-    PGPASSWORD=password psql -h db -U user -d mydatabase -c 'DROP TABLE IF EXISTS alembic_version;' && \
+    PGPASSWORD=password psql -h sk08-db -U user -d mydatabase -c 'DROP TABLE IF EXISTS alembic_version;' && \
     if [ ! -d 'migrations' ] || [ -z \"$(ls -A migrations)\" ]; then \
         echo 'Initializing migrations directory...' && \
         flask db init; \

@@ -12,7 +12,7 @@ services:
       - ./backend:/app
       - /home/cerny/logs/sk08-web:/app/logs
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+      - DATABASE_URL=postgresql://user:password@sk08-db/mydatabase
       - PYTHONPATH=/app
       - FLASK_ENV=development
     depends_on:
@@ -34,6 +34,8 @@ services:
       - internal
 
   db:
+    container_name: sk08-db
+    hostname: sk08-db
     image: postgres:17
     restart: always
     environment:
@@ -42,8 +44,6 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "50007:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
       interval: 10s
@@ -62,8 +62,6 @@ services:
     networks:
       - internal
 
-volumes:
-  pgdata:
 networks:
   cdb-network:
     name: cdb-network

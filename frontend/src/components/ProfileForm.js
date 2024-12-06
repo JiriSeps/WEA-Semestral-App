@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 function ProfileForm({ onUpdate, translations, language, onClose, userData }) {
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ function ProfileForm({ onUpdate, translations, language, onClose, userData }) {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const response = await axios.get('http://localhost:8007/api/genres');
+        const response = await axios.get(`${API_BASE_URL}/api/genres`);
         setGenres(response.data.genres);
         setLoading(false);
       } catch (error) {
@@ -105,7 +106,7 @@ function ProfileForm({ onUpdate, translations, language, onClose, userData }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.put('http://localhost:8007/api/user/profile', formData);
+      const response = await axios.put(`${API_BASE_URL}/api/user/profile`, formData);
       onUpdate(response.data.user);
       onClose();
     } catch (error) {

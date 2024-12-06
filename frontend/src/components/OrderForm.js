@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 function OrderForm({ onSubmit, translations, language, onClose, userData, cartItems }) {
   const [formData, setFormData] = useState({
@@ -116,7 +117,7 @@ function OrderForm({ onSubmit, translations, language, onClose, userData, cartIt
       };
 
       // Odeslání objednávky na server
-      await axios.post('http://localhost:8007/api/orders', orderData, {
+      await axios.post(`${API_BASE_URL}/api/orders`, orderData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
@@ -125,7 +126,7 @@ function OrderForm({ onSubmit, translations, language, onClose, userData, cartIt
       });
 
       // Vyčištění košíku
-      await axios.delete('http://localhost:8007/api/shoppingcart', {
+      await axios.delete(`${API_BASE_URL}/api/shoppingcart`, {
         withCredentials: true
       });
 

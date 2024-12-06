@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 export const SearchForm = ({ 
   searchQueries, 
@@ -20,7 +21,7 @@ export const SearchForm = ({
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const response = await axios.get('http://localhost:8007/api/genres');
+        const response = await axios.get(`${API_BASE_URL}/api/genres`);
         setGenres(response.data.genres);
         setLoading(false);
       } catch (error) {

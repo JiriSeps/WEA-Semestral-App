@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const BookRating = ({ isbn, user, translations, language, onRatingUpdate, currentRating }) => {
   const [userRating, setUserRating] = useState(currentRating || null);
@@ -22,7 +23,7 @@ const BookRating = ({ isbn, user, translations, language, onRatingUpdate, curren
 
   const fetchUserRating = async () => {
     try {
-      const response = await fetch(`http://localhost:8007/api/ratings/${isbn}`, {
+      const response = await fetch(`${API_BASE_URL}/api/ratings/${isbn}`, {
         credentials: 'include'
       });
       
@@ -53,7 +54,7 @@ const BookRating = ({ isbn, user, translations, language, onRatingUpdate, curren
     }
 
     try {
-      const response = await fetch(`http://localhost:8007/api/ratings/${isbn}`, {
+      const response = await fetch(`${API_BASE_URL}/api/ratings/${isbn}`, {
         method: 'POST',
         credentials: 'include',
         headers: {

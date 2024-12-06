@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import BookComments from './BookComments';
 import BookRating from './BookRating';
+import { API_BASE_URL } from '../config';
 
 const BookDetail = ({ 
   isbn, 
@@ -21,7 +22,7 @@ const BookDetail = ({
   const fetchBookDetail = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8007/api/books/${isbn}`, {
+      const response = await fetch(`${API_BASE_URL}/api/books/${isbn}`, {
         credentials: 'include'
       });
       
@@ -61,7 +62,7 @@ const BookDetail = ({
 
     setIsFavoriteLoading(true);
     try {
-      const response = await fetch(`http://localhost:8007/api/favorites/${isbn}`, {
+      const response = await fetch(`${API_BASE_URL}/api/favorites/${isbn}`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -100,7 +101,7 @@ const BookDetail = ({
 
   const checkCartStatus = async () => {
     try {
-      const response = await fetch(`http://localhost:8007/api/shoppingcart/${isbn}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/shoppingcart/${isbn}/status`, {
         credentials: 'include'
       });
       
@@ -122,7 +123,7 @@ const BookDetail = ({
 
     setIsCartLoading(true);
     try {
-      const response = await fetch(`http://localhost:8007/api/shoppingcart/${isbn}`, {
+      const response = await fetch(`${API_BASE_URL}/api/shoppingcart/${isbn}`, {
         method: 'POST',
         credentials: 'include',
         headers: {

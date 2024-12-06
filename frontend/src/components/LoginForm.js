@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
+
 
 function LoginForm({ onLogin, translations, language }) {
   const [username, setUsername] = useState('');
@@ -16,7 +18,7 @@ function LoginForm({ onLogin, translations, language }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8007/api/login', { username, password });
+      const response = await axios.post(`${API_BASE_URL}/api/login`, { username, password });
       onLogin(response.data.user);
     } catch (error) {
       setError(translations[language].loginError);
