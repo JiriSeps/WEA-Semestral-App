@@ -105,6 +105,18 @@ export const translations = {
         emptyCart: "Váš košík je prázdný",
         removedFromCart: "Položka byla odebrána z košíku",
         removeError: "Chyba při odebírání položky z košíku",
+        myOrders: 'Moje objednávky',
+        orderNumber: 'Číslo objednávky',
+        status: 'Stav',
+        quantity: 'Množství',
+        ordered: 'Objednáno',
+        paymentMethod: 'Způsob platby',
+        paymentFee: 'Poplatek za platbu',
+        totalPrice: 'Celková cena',
+        shippingAddress: 'Dodací adresa',
+        loading: 'Načítání...',
+        noOrders: 'Nemáte žádné objednávky',
+        loadError: 'Chyba při načítání objednávek'
     },
     en: {
         title: "Book Store",
@@ -212,5 +224,17 @@ export const translations = {
         emptyCart: "Your cart is empty",
         removedFromCart: "Item was removed from cart",
         removeError: "Error removing item from cart",
+        myOrders: 'My Orders',
+        orderNumber: 'Order number',
+        status: 'Status',
+        quantity: 'Quantity',
+        ordered: 'Ordered',
+        paymentMethod: 'Payment method',
+        paymentFee: 'Payment fee',
+        totalPrice: 'Total price',
+        shippingAddress: 'Shipping address',
+        loading: 'Loading...',
+        noOrders: 'You have no orders',
+        loadError: 'Error loading orders'
     }
 };

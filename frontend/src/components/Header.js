@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Package } from 'lucide-react';
 
 export const Header = ({ 
   language, 
@@ -8,8 +8,9 @@ export const Header = ({
   handleLogout, 
   toggleLoginForm, 
   toggleRegisterForm, 
-  toggleProfileForm, 
-  toggleShoppingCart, 
+  toggleProfileForm,
+  toggleShoppingCart,
+  toggleOrders, // přidáno
   translations 
 }) => (
   <div className="header flex items-center justify-between p-4">
@@ -27,15 +28,17 @@ export const Header = ({
           <button onClick={toggleProfileForm} className="profile-button">
             {translations[language].editProfile}
           </button>
-          <button onClick={handleLogout} className="logout-button">
-            {translations[language].logout}
+          <button onClick={toggleOrders} className="orders-button">
+            <Package size={24} />
           </button>
           <button 
             onClick={toggleShoppingCart}
             className="cart-button"
           >
             <ShoppingCart size={24} />
-            {/* Optional: Add badge for number of items in cart */}
+          </button>
+          <button onClick={handleLogout} className="logout-button">
+            {translations[language].logout}
           </button>
         </div>
       ) : (

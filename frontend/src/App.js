@@ -10,6 +10,7 @@ import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import ProfileForm from './components/ProfileForm';
 import ShoppingCart from './components/ShoppingCart';
+import OrderList from './components/UserOrders';  // Přidán import
 import { API_BASE_URL } from './config';
 
 import './App.css';
@@ -43,7 +44,7 @@ function App() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [showShoppingCart, setShowShoppingCart] = useState(false);
-
+  const [showOrders, setShowOrders] = useState(false);  // Přidán nový state
 
   // Efekty
   useEffect(() => {
@@ -61,7 +62,7 @@ function App() {
       author: queries.author,
       isbn: queries.isbn,
       genres: queries.genres ? queries.genres.join(';') : '',
-      favorites: showFavorites  // Přidáme parametr pro oblíbené
+      favorites: showFavorites
     });
   
     axios.get(`${API_BASE_URL}/api/books?${queryParams.toString()}`)
@@ -83,7 +84,7 @@ function App() {
       setUser(response.data.user);
     } catch (error) {
       console.error("Error checking logged in user", error);
-      setShowFavorites(false); // Přepnout zpět na všechny knihy pokud uživatel není přihlášen
+      setShowFavorites(false);
     }
   };
 
@@ -140,13 +141,9 @@ function App() {
 
   const handleLogin = async (userData) => {
     try {
-      // Nejdřív nastavíme základní user data z přihlášení
       setUser(userData);
-      
-      // Pak ihned fetchneme kompletní user data
       const response = await axios.get(`${API_BASE_URL}/api/user`);
-      setUser(response.data.user);  // Nastavíme kompletní data
-      
+      setUser(response.data.user);
       setShowLoginForm(false);
       setShowRegisterForm(false);
     } catch (error) {
@@ -163,7 +160,7 @@ function App() {
     try {
       await axios.post(`${API_BASE_URL}/api/logout`);
       setUser(null);
-      setShowFavorites(false); // Přepnout zpět na všechny knihy při odhlášení
+      setShowFavorites(false);
     } catch (error) {
       console.error("Error logging out", error);
     }
@@ -181,6 +178,10 @@ function App() {
 
   const toggleProfileForm = () => {
     setShowProfileForm(!showProfileForm);
+  };
+
+  const toggleOrders = () => {  // Přidána nová funkce
+    setShowOrders(!showOrders);
   };
 
   const handleBookSelect = (isbn) => {
@@ -228,6 +229,7 @@ function App() {
         toggleRegisterForm={toggleRegisterForm}
         toggleProfileForm={toggleProfileForm}
         toggleShoppingCart={toggleShoppingCart}
+        toggleOrders={toggleOrders}  // Přidán nový prop
         translations={translations}
       />
       
@@ -254,6 +256,14 @@ function App() {
           translations={translations}
           language={language}
           userData={user}
+        />
+      )}
+
+      {showOrders && (  // Přidáno zobrazení OrderList
+        <OrderList
+          translations={translations}
+          language={language}
+          onClose={() => setShowOrders(false)}
         />
       )}
 
@@ -323,6 +333,5 @@ function App() {
     </div>
   );
 }
-
 
 export default App;
