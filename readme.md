@@ -62,10 +62,10 @@
 
 ---
 
-### 🛠 cv09
+### ✅ cv09
 - **Košík** - ✅ Hotovo
 - **Tlačítko a formulář objednávky** - ✅ Hotovo
 
 ---
 
-### 📋 cv10 - Zatím nezačato
+### ✅ cv10
