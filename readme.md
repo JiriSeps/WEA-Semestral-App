@@ -69,3 +69,5 @@
 ---
 
 ### ✅ cv10
+- **Výpis objednávek** - ✅ Hotovo
+- **Dokončení Pylintu** - ✅ Hotovo
