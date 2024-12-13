@@ -29,7 +29,7 @@ jobs:
 
     - name: Check Pylint Score
       run: |
-        if (( $(echo "$SCORE > 2.5" | bc -l) )); then
+        if (( $(echo "$SCORE > 7" | bc -l) )); then
           echo "Pylint score is satisfactory: $SCORE"
         else
           echo "Pylint score is too low: $SCORE"
