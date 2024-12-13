@@ -1,5 +1,3 @@
-import csv
-import os
 from sqlalchemy import or_
 from database.genre import Genre
 from database.genre_operations import filter_books_by_genres, update_book_genres
@@ -17,10 +15,10 @@ def get_favorite_books(user_id, page=1, per_page=25):
         ).filter(
             favorite_books.c.user_id == user_id
         )
-        
+
         total_books = base_query.count()
         books = base_query.order_by(Book.Title).offset((page - 1) * per_page).limit(per_page).all()
-        
+
         books_data = _format_books_data(books)
         return books_data, total_books
     except SQLAlchemyError as e:
@@ -33,12 +31,12 @@ def search_books(title=None, authors=None, isbn=None, genres=None, page=1, per_p
 
         if title:
             query = query.filter(Book.Title.ilike(f'%{title}%'))
-        
+
         if authors:
             author_terms = [author.strip() for author in authors.split(';') if author.strip()]
             for author in author_terms:
                 query = query.filter(Book.Author.ilike(f'%{author}%'))
-        
+
         if isbn:
             query = query.filter(
                 or_(
@@ -46,13 +44,13 @@ def search_books(title=None, authors=None, isbn=None, genres=None, page=1, per_p
                     Book.ISBN13.ilike(f'%{isbn}%')
                 )
             )
-        
+
         if genres:
             query = filter_books_by_genres(query, genres)
 
         total = query.count()
         books = query.order_by(Book.Title).offset((page - 1) * per_page).limit(per_page).all()
-        
+
         books_data = _format_books_data(books)
         return books_data, total
     except SQLAlchemyError as e:
@@ -64,10 +62,10 @@ def get_book_by_isbn(isbn, user_id=None):
         book = Book.query.filter(
             (Book.ISBN10 == isbn) | (Book.ISBN13 == isbn)
         ).filter_by(is_visible=True).first()
-        
+
         if not book:
             return None
-            
+
         is_favorite = False
         if user_id:
             favorite = db.session.query(favorite_books).filter_by(
@@ -75,7 +73,7 @@ def get_book_by_isbn(isbn, user_id=None):
                 book_isbn10=book.ISBN10
             ).first()
             is_favorite = favorite is not None
-            
+
         return _format_book_data(book, is_favorite)
     except SQLAlchemyError as e:
         print(f"Error getting book by ISBN: {str(e)}")
@@ -96,10 +94,10 @@ def fetch_and_update_books(books_data):
             isbn10 = book.get('isbn10')
             if not isbn10:
                 continue
-                
+
             existing_book = Book.query.get(isbn10)
             categories = book.get('categories', '')  # Získáme žánry z dat knihy
-            
+
             if existing_book:
                 _update_existing_book(existing_book, book)
                 update_book_genres(existing_book, categories)  # Aktualizujeme žánry
@@ -110,7 +108,7 @@ def fetch_and_update_books(books_data):
                 db.session.add(new_book)
                 new_books += 1
                 newly_added_books.add(isbn10)
-                
+
                 # Záznam o přidání nové knihy - už bez book_title
                 create_audit_log(
                     event_type=AuditEventType.BOOK_ADD,
@@ -122,14 +120,13 @@ def fetch_and_update_books(books_data):
                 )
 
         _create_audit_logs(previously_visible_books, new_visible_isbns, newly_added_books)
-        
+
         db.session.commit()
         return updated_books, new_books
-        
+
     except SQLAlchemyError as e:
         db.session.rollback()
         raise e
-
 
 def _format_books_data(books):
     return [{
@@ -205,8 +202,7 @@ def _create_audit_logs(previously_visible_books, new_visible_isbns, newly_added_
                 username="CDB_SYSTEM",
                 book_isbn=isbn
             )
-    
-    # Zaznamenání nově zobrazených knih
+
     for isbn in new_visible_isbns:
         if isbn not in previously_visible_books and isbn not in newly_added_books:
             book = Book.query.get(isbn)
@@ -233,8 +229,7 @@ def get_all_unique_genres():
             .distinct()\
             .order_by(Genre.name)\
             .all()
-        
-        # Vrátíme seřazený seznam názvů žánrů
+
         return [genre.name for genre in active_genres]
     except SQLAlchemyError as e:
         print(f"Error getting unique genres: {str(e)}")

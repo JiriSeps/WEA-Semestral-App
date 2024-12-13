@@ -1,8 +1,8 @@
-from database.audit import db, AuditLog, AuditEventType
-from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
+from sqlalchemy.exc import SQLAlchemyError
+from database.audit import db, AuditLog, AuditEventType
 
-def create_audit_log(event_type: AuditEventType, username: str, book_isbn: str = None, 
+def create_audit_log(event_type: AuditEventType, username: str, book_isbn: str = None,
                     additional_data: dict = None) -> tuple[bool, str]:
     """
     Vytvoří nový auditní záznam.
@@ -30,7 +30,7 @@ def get_audit_logs(page: int = 1, per_page: int = 50) -> tuple[list, int, str]:
         paginated_logs = AuditLog.query\
             .order_by(AuditLog.timestamp.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
-        
+
         return paginated_logs.items, paginated_logs.total, "Success"
     except SQLAlchemyError as e:
         return None, 0, str(e)
@@ -44,7 +44,7 @@ def get_user_audit_logs(username: str, page: int = 1, per_page: int = 50) -> tup
             .filter_by(username=username)\
             .order_by(AuditLog.timestamp.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
-        
+
         return paginated_logs.items, paginated_logs.total, "Success"
     except SQLAlchemyError as e:
         return None, 0, str(e)
@@ -62,7 +62,7 @@ def get_book_audit_logs(book_isbn: str) -> tuple[list, str]:
     except SQLAlchemyError as e:
         return None, str(e)
 
-def get_event_type_logs(event_type: AuditEventType, page: int = 1, 
+def get_event_type_logs(event_type: AuditEventType, page: int = 1,
                        per_page: int = 50) -> tuple[list, int, str]:
     """
     Získá auditní záznamy pro konkrétní typ události.
@@ -72,7 +72,7 @@ def get_event_type_logs(event_type: AuditEventType, page: int = 1,
             .filter_by(event_type=event_type)\
             .order_by(AuditLog.timestamp.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
-        
+
         return paginated_logs.items, paginated_logs.total, "Success"
     except SQLAlchemyError as e:
         return None, 0, str(e)

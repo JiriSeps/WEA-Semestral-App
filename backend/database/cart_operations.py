@@ -16,29 +16,29 @@ def get_formatted_shopping_cart(page=1, per_page=25):
     # Get cart from session using user-specific key
     cart_key = f'shopping_cart_{user_id}'
     cart = session.get(cart_key, [])
-    
+
     try:
         filtered_books = []
         for cart_item in cart:
             book = Book.query.filter(
                 (Book.ISBN10 == cart_item['isbn']) | (Book.ISBN13 == cart_item['isbn'])
             ).first()
-            
+
             if book and book.is_visible:
                 filtered_books.append({
                     'book': book,
                     'is_visible': book.is_visible,
                     'added_at': cart_item.get('added_at')
                 })
-        
+
         # Sort books by added_at in descending order
         filtered_books.sort(key=lambda x: x['added_at'] or datetime.min, reverse=True)
-        
+
         # Pagination
         start = (page - 1) * per_page
         end = start + per_page
         paginated_books = filtered_books[start:end]
-        
+
         books_data = [{
             'ISBN10': book['book'].ISBN10,
             'ISBN13': book['book'].ISBN13,
@@ -54,7 +54,7 @@ def get_formatted_shopping_cart(page=1, per_page=25):
             'Price': book['book'].Price,
             'is_visible': book['is_visible']
         } for book in paginated_books]
-        
+
         return {
             'books': books_data,
             'total_books': len(filtered_books),
@@ -79,21 +79,21 @@ def toggle_cart(isbn):
         # Get user-specific cart from session
         cart_key = f'shopping_cart_{user_id}'
         cart = session.get(cart_key, [])
-        
+
         # Find the book
         book = Book.query.filter(
             (Book.ISBN10 == isbn) | (Book.ISBN13 == isbn)
         ).first()
-        
+
         if not book:
             return {'error': 'Kniha nenalezena'}
-        
+
         if not book.is_visible:
             return {'error': 'Kniha není dostupná'}
-        
+
         # Check if book is already in cart
         existing_book = next((item for item in cart if item['isbn'] == book.ISBN10 or item['isbn'] == book.ISBN13), None)
-        
+
         if existing_book:
             # Remove book from cart
             cart = [item for item in cart if item['isbn'] != book.ISBN10 and item['isbn'] != book.ISBN13]
@@ -107,11 +107,11 @@ def toggle_cart(isbn):
             })
             action = 'přidána do'
             is_in_cart = True
-        
+
         # Update user-specific session
         session[cart_key] = cart
         session.modified = True
-        
+
         return {
             'message': f'Kniha byla {action} košíku',
             'is_in_cart': is_in_cart,
@@ -138,7 +138,7 @@ def clear_shopping_cart():
         cart_key = f'shopping_cart_{user_id}'
         session[cart_key] = []
         session.modified = True
-        
+
         return {
             'message': 'Košík byl úspěšně vyprázdněn',
             'success': True
@@ -162,24 +162,24 @@ def is_book_in_shopping_cart(isbn):
         # Get user-specific cart from session
         cart_key = f'shopping_cart_{user_id}'
         cart = session.get(cart_key, [])
-        
+
         # Find the book
         book = Book.query.filter(
             (Book.ISBN10 == isbn) | (Book.ISBN13 == isbn)
         ).first()
-        
+
         if not book:
             return {'error': 'Kniha nenalezena'}
-        
+
         if not book.is_visible:
             return {'error': 'Kniha není dostupná'}
-        
+
         # Check if book is in cart
         is_in_cart = any(
             item['isbn'] == book.ISBN10 or item['isbn'] == book.ISBN13 
             for item in cart
         )
-        
+
         return {
             'is_in_cart': is_in_cart,
             'book': {

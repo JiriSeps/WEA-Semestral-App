@@ -21,7 +21,7 @@ def create_order(user_id, cart_items, email, shipping_address, billing_address, 
         user = User.query.get(user_id)
         if not user:
             return {'error': 'Uživatel neexistuje'}
-        
+
         # Odstranit GDPR kontrolu z user profilu - používáme souhlas z formuláře
 
         # Vytvoření objednávky
@@ -53,7 +53,7 @@ def create_order(user_id, cart_items, email, shipping_address, billing_address, 
             if not book or not book.is_visible:
                 db.session.rollback()
                 return {'error': f'Kniha {item["isbn"]} není dostupná'}
-            
+
             order_item = OrderItem(
                 book_isbn10=book.ISBN10,
                 quantity=item['quantity'],
@@ -112,10 +112,10 @@ def get_order(order_id, user_id=None):
         order = Order.query.get(order_id)
         if not order:
             return {'error': 'Objednávka nenalezena'}
-            
+
         if user_id and order.user_id != user_id:
             return {'error': 'Neoprávněný přístup k objednávce'}
-            
+
         return format_order_data(order)
     except Exception as e:
         return {'error': f'Chyba při získávání objednávky: {str(e)}'}
@@ -138,7 +138,7 @@ def update_order_status(order_id, new_status, user_id=None):
         order = Order.query.get(order_id)
         if not order:
             return {'error': 'Objednávka nenalezena'}
-            
+
         if user_id and order.user_id != user_id:
             return {'error': 'Neoprávněný přístup k objednávce'}
 

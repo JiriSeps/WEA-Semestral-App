@@ -11,19 +11,19 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    
+
     # Osobní adresa
     personal_street = db.Column(db.String(200))
     personal_city = db.Column(db.String(100))
     personal_postal_code = db.Column(db.String(10))
     personal_country = db.Column(db.String(100))
-    
+
     # Fakturační adresa
     billing_street = db.Column(db.String(200))
     billing_city = db.Column(db.String(100))
     billing_postal_code = db.Column(db.String(10))
     billing_country = db.Column(db.String(100))
-    
+
     # Osobní údaje
     gdpr_consent = db.Column(db.Boolean, default=False, nullable=True)
     gdpr_consent_date = db.Column(db.DateTime, nullable=True)

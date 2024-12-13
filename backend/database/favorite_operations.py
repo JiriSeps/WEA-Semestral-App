@@ -1,18 +1,18 @@
+from datetime import datetime
 from . import db
 from .book import Book
 from .user import User, favorite_books
-from datetime import datetime
-from sqlalchemy import select, exists
+from sqlalchemy import select
 
 def get_formatted_favorite_books(user_id, page=1, per_page=25):
     """
     Získá formátovaný seznam oblíbených knih uživatele včetně metadat pro stránkování
     """
     books, total, error = get_user_favorite_books(user_id, page, per_page)
-    
+
     if books is None:
         return {'error': error}
-        
+
     books_data = [{
         'ISBN10': book['book'].ISBN10,
         'ISBN13': book['book'].ISBN13,
@@ -28,7 +28,7 @@ def get_formatted_favorite_books(user_id, page=1, per_page=25):
         'Price': book['book'].Price,
         'is_visible': book['is_visible']
     } for book in books]
-    
+
     return {
         'books': books_data,
         'total_books': total,
@@ -45,14 +45,14 @@ def toggle_favorite(user_id, isbn):
         user = User.query.get(user_id)
         if not user:
             return False, "Uživatel nenalezen"
-            
+
         # Hledáme knihu podle ISBN10 nebo ISBN13
         book = Book.query.filter(
             (Book.ISBN10 == isbn) | (Book.ISBN13 == isbn)
         ).first()
         if not book:
             return False, "Kniha nenalezena"
-        
+
         # Kontrola existence v oblíbených - opravená syntaxe pro novější SQLAlchemy
         exists_stmt = select(favorite_books).where(
             db.and_(
@@ -61,7 +61,7 @@ def toggle_favorite(user_id, isbn):
             )
         ).exists()
         is_favorite = db.session.query(exists_stmt).scalar()
-        
+
         if is_favorite:
             # Odstranění z oblíbených
             stmt = favorite_books.delete().where(
@@ -80,9 +80,9 @@ def toggle_favorite(user_id, isbn):
                 added_at=datetime.utcnow()
             )
             db.session.execute(stmt)
-            
+
             message = "Kniha byla přidána do oblíbených"
-            
+
         db.session.commit()
         return True, message
     except Exception as e:
@@ -97,7 +97,7 @@ def get_user_favorite_books(user_id, page=1, per_page=25):
         user = User.query.get(user_id)
         if not user:
             return None, 0, "Uživatel nenalezen"
-        
+
         # Přidáme is_visible do výběru
         query = db.session.query(Book, Book.is_visible).join(
             favorite_books,
@@ -105,19 +105,19 @@ def get_user_favorite_books(user_id, page=1, per_page=25):
         ).filter(
             favorite_books.c.user_id == user_id
         )
-        
+
         total = query.count()
-        
+
         results = query.order_by(favorite_books.c.added_at.desc()).offset(
             (page - 1) * per_page
         ).limit(per_page).all()
-        
+
         # Upravíme výstup, aby obsahoval informaci o viditelnosti
         books = [{
             'book': book,
             'is_visible': is_visible
         } for book, is_visible in results]
-        
+
         return books, total, None
     except Exception as e:
         return None, 0, f"Chyba při získávání oblíbených knih: {str(e)}"
@@ -131,14 +131,14 @@ def is_book_favorite(user_id, isbn):
         user = User.query.get(user_id)
         if not user:
             return False, "Uživatel nenalezen"
-            
+
         # Hledáme knihu podle ISBN10 nebo ISBN13
         book = Book.query.filter(
             (Book.ISBN10 == isbn) | (Book.ISBN13 == isbn)
         ).first()
         if not book:
             return False, "Kniha nenalezena"
-        
+
         # Kontrola existence v oblíbených - opravená syntaxe pro novější SQLAlchemy
         exists_stmt = select(favorite_books).where(
             db.and_(
@@ -147,7 +147,7 @@ def is_book_favorite(user_id, isbn):
             )
         ).exists()
         is_favorite = db.session.query(exists_stmt).scalar()
-            
+
         return is_favorite, None
     except Exception as e:
         return False, f"Chyba při kontrole oblíbené knihy: {str(e)}"

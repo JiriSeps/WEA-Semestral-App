@@ -1,24 +1,24 @@
+from datetime import datetime
 from database.comment import db, Comment
 from database.book import Book
 from sqlalchemy.exc import SQLAlchemyError
-from datetime import datetime
 
 def get_formatted_comments_for_book(book_isbn, page=1, per_page=10):
     """
     Získá formátované komentáře pro danou knihu včetně metadat pro stránkování.
     """
     comments, total, message = get_comments_for_book(book_isbn, page, per_page)
-    
+
     if comments is None:
         return {'error': message}
-        
+
     comments_data = [{
         'id': comment.id,
         'text': comment.text,
         'created_at': comment.created_at.isoformat(),
         'user_id': comment.user_id
     } for comment in comments]
-    
+
     return {
         'comments': comments_data,
         'total_comments': total,
@@ -67,7 +67,7 @@ def get_comments_for_book(book_isbn, page=1, per_page=10):
         paginated_comments = Comment.query.filter_by(book_isbn=book_isbn)\
             .order_by(Comment.created_at.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
-        
+
         return paginated_comments.items, paginated_comments.total, "Success"
     except SQLAlchemyError as e:
         return None, 0, str(e)
@@ -83,7 +83,7 @@ def delete_comment(comment_id, user_id):
             return False, "Comment not found"
         if comment.user_id != user_id:
             return False, "Unauthorized to delete this comment"
-            
+
         db.session.delete(comment)
         db.session.commit()
         return True, "Comment deleted successfully"
@@ -101,7 +101,7 @@ def get_user_comments(user_id, page=1, per_page=10):
             .filter(Comment.user_id == user_id)\
             .filter(Book.is_visible == True)\
             .order_by(Comment.created_at.desc())
-            
+
         paginated_comments = query.paginate(page=page, per_page=per_page, error_out=False)
         return paginated_comments.items, paginated_comments.total, "Success"
     except SQLAlchemyError as e:

@@ -7,7 +7,9 @@ from database.genre import Genre
 # user_operations.py
 
 def format_user_data(user):
-    """Helper funkce pro formátování dat uživatele"""
+    """
+    Helper funkce pro formátování dat uživatele
+    """
     return {
         'id': user.id,
         'username': user.username,
@@ -40,7 +42,7 @@ def create_user(username, password, name):
         new_user = User(username=username, password=hashed_password, name=name)
         db.session.add(new_user)
         db.session.commit()
-        
+
         return {
             'message': 'Uživatel úspěšně zaregistrován',
             'user': format_user_data(new_user)
@@ -75,7 +77,7 @@ def get_formatted_user_data(user_id):
         user = User.query.get(user_id)
         if not user:
             return {'error': 'Uživatel nenalezen'}
-        
+
         return {'user': format_user_data(user)}
     except Exception as e:
         return {'error': f'Chyba při získávání dat uživatele: {str(e)}'}
@@ -94,14 +96,13 @@ def update_user_profile(user_id, data):
         user.personal_city = data.get('personal_city')
         user.personal_postal_code = data.get('personal_postal_code')
         user.personal_country = data.get('personal_country')
-        
+
         # Fakturační adresa - přímý přístup k atributům
         user.billing_street = data.get('billing_street')
         user.billing_city = data.get('billing_city')
         user.billing_postal_code = data.get('billing_postal_code')
         user.billing_country = data.get('billing_country')
-        
-        # GDPR souhlas
+
         # GDPR souhlas
         if 'gdpr_consent' in data:
             user.gdpr_consent = bool(data['gdpr_consent'])
@@ -109,30 +110,30 @@ def update_user_profile(user_id, data):
                 user.gdpr_consent_date = datetime.utcnow()
             else:
                 user.gdpr_consent_date = None  # Když odebíráme souhlas, vymažeme i datum
-        
+
         # Gender
         if 'gender' in data:
             gender_str = data['gender'].lower()
             if gender_str in ('male', 'female'):
                 user.gender = Gender[gender_str.upper()]
-        
+
         # Věk
         if 'age' in data:
             try:
                 user.age = int(data['age'])
             except (ValueError, TypeError):
                 pass
-        
+
         # Oblíbené žánry
         if 'favorite_genres' in data:
             genre_names = data['favorite_genres']
             if isinstance(genre_names, list):
                 # Najdeme všechny existující žánry podle jejich názvů
                 genres = Genre.query.filter(Genre.name.in_(genre_names)).all()
-                
+
                 # Vytvoříme slovník pro rychlé vyhledávání existujících žánrů
                 existing_genres = {genre.name: genre for genre in genres}
-                
+
                 # Vytvoříme nové žánry pro ty, které ještě neexistují
                 new_genres = []
                 for name in genre_names:
@@ -140,21 +141,21 @@ def update_user_profile(user_id, data):
                         new_genre = Genre(name=name, is_active=True)
                         db.session.add(new_genre)
                         new_genres.append(new_genre)
-                
+
                 # Aktualizujeme oblíbené žánry uživatele
                 user.favorite_genres = list(existing_genres.values()) + new_genres
-        
+
         # Zdroj reference
         if 'referral_source' in data:
             user.referral_source = data['referral_source']
-        
+
         db.session.commit()
-        
+
         return {
             'message': 'Profil byl úspěšně aktualizován',
             'user': format_user_data(user)
         }
-        
+
     except Exception as e:
         db.session.rollback()
         return {'error': f'Chyba při aktualizaci profilu: {str(e)}'}
