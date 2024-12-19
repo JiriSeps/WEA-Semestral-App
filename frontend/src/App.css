@@ -1834,3 +1834,27 @@ tr.book-unavailable:hover {
     gap: 10px;
   }
 }
+
+.audit-log-button {
+  background-color: #007bff; /* Primary blue color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.audit-log-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.audit-log-button:active {
+  background-color: #004085; /* Even darker blue when clicked */
+}
+
+.audit-log-button:disabled {
+  background-color: #c0c0c0; /* Grey when disabled */
+  cursor: not-allowed;
+}

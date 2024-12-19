@@ -11,6 +11,7 @@ import RegisterForm from './components/RegisterForm';
 import ProfileForm from './components/ProfileForm';
 import ShoppingCart from './components/ShoppingCart';
 import OrderList from './components/UserOrders';  // Přidán import
+import AuditLog from './components/AuditLog';
 import { API_BASE_URL } from './config';
 
 import './App.css';
@@ -45,6 +46,7 @@ function App() {
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [showShoppingCart, setShowShoppingCart] = useState(false);
   const [showOrders, setShowOrders] = useState(false);  // Přidán nový state
+  const [showAuditLog, setShowAuditLog] = useState(false);
 
   // Efekty
   useEffect(() => {
@@ -87,6 +89,8 @@ function App() {
       setShowFavorites(false);
     }
   };
+
+  const toggleAuditLog = () => setShowAuditLog(prev => !prev);
 
   // Handlery
   const handlePageChange = (newPage) => {
@@ -161,6 +165,7 @@ function App() {
       await axios.post(`${API_BASE_URL}/api/logout`);
       setUser(null);
       setShowFavorites(false);
+      setShowAuditLog(false);
     } catch (error) {
       console.error("Error logging out", error);
     }
@@ -231,6 +236,7 @@ function App() {
         toggleShoppingCart={toggleShoppingCart}
         toggleOrders={toggleOrders}  // Přidán nový prop
         translations={translations}
+        toggleAuditLog={toggleAuditLog}
       />
       
       {showLoginForm && (
@@ -240,6 +246,9 @@ function App() {
           language={language} 
         />
       )}
+
+      {showAuditLog && <AuditLog onClose={toggleAuditLog} />}
+
       
       {showRegisterForm && (
         <RegisterForm 

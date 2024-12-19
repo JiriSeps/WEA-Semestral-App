@@ -6,6 +6,10 @@ class Gender(Enum):
     MALE = 'male'
     FEMALE = 'female'
 
+class RoleEnum(Enum):
+    USER = 'USER'
+    ADMIN = 'ADMIN'
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -43,8 +47,11 @@ class User(db.Model):
         backref=db.backref('favorited_by', lazy='dynamic')
     )
 
+    # Role (enum přímo v tabulce user)
+    role = db.Column(db.Enum(RoleEnum), nullable=False, default=RoleEnum.USER.value)
+
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'<User {self.username} with role {self.role}>'
 
 # Vazební tabulka pro oblíbené knihy
 favorite_books = db.Table('favorite_books',

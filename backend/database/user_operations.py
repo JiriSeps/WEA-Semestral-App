@@ -1,4 +1,4 @@
-from database.user import db, User, Gender 
+from database.user import db, User, Gender
 from database.book import Book
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -8,7 +8,7 @@ from database.genre import Genre
 
 def format_user_data(user):
     """
-    Helper funkce pro formátování dat uživatele
+    Helper function for formatting user data
     """
     return {
         'id': user.id,
@@ -29,49 +29,53 @@ def format_user_data(user):
         'gdpr_consent': user.gdpr_consent,
         'gender': user.gender.value if user.gender else None,
         'age': user.age,
-        'favorite_genres': [genre.name for genre in user.favorite_genres],  # Seznam názvů oblíbených žánrů
-        'referral_source': user.referral_source
+        'favorite_genres': [genre.name for genre in user.favorite_genres],  # List of favorite genres
+        'referral_source': user.referral_source,
+        'role': user.role.value if user.role else None  # Role of the user
     }
 
-def create_user(username, password, name):
+def create_user(username, password, name, role='USER'):
     try:
         if User.query.filter_by(username=username).first():
-            return {'error': 'Uživatelské jméno již existuje'}
+            return {'error': 'Username already exists'}
 
         hashed_password = generate_password_hash(password)
-        new_user = User(username=username, password=hashed_password, name=name)
+        if role not in ('USER', 'ADMIN'):
+            return {'error': 'Invalid role'}
+
+        new_user = User(username=username, password=hashed_password, name=name, role=role)
         db.session.add(new_user)
         db.session.commit()
 
         return {
-            'message': 'Uživatel úspěšně zaregistrován',
+            'message': 'User successfully registered',
             'user': format_user_data(new_user)
         }
     except Exception as e:
         db.session.rollback()
-        return {'error': f'Chyba při vytváření uživatele: {str(e)}'}
+        return {'error': f'Error creating user: {str(e)}'}
 
 def authenticate_user(username, password):
     try:
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             return {
-                'message': 'Přihlášení úspěšné',
+                'message': 'Login successful',
                 'user': format_user_data(user)
             }
-        return {'error': 'Neplatné přihlašovací údaje'}
+        return {'error': 'Invalid login credentials'}
     except Exception as e:
-        return {'error': f'Chyba při autentizaci: {str(e)}'}
+        return {'error': f'Error during authentication: {str(e)}'}
 
 def get_user_profile(user_id):
     try:
         user = User.query.get(user_id)
         if not user:
-            return {'error': 'Uživatel nenalezen'}
+            return {'error': 'User not found'}
         return format_user_data(user)
     except Exception as e:
-        return {'error': f'Chyba při získávání profilu: {str(e)}'}
-
+        return {'error': f'Error retrieving profile: {str(e)}'}
+    
 def get_formatted_user_data(user_id):
     try:
         user = User.query.get(user_id)
@@ -84,32 +88,32 @@ def get_formatted_user_data(user_id):
 
 def update_user_profile(user_id, data):
     """
-    Aktualizuje profil uživatele na základě poskytnutých dat.
+    Updates the user's profile based on the provided data.
     """
     try:
         user = User.query.get(user_id)
         if not user:
-            return {'error': 'Uživatel nenalezen'}
+            return {'error': 'User not found'}
 
-        # Osobní adresa - přímý přístup k atributům
+        # Personal address - direct attribute access
         user.personal_street = data.get('personal_street')
         user.personal_city = data.get('personal_city')
         user.personal_postal_code = data.get('personal_postal_code')
         user.personal_country = data.get('personal_country')
 
-        # Fakturační adresa - přímý přístup k atributům
+        # Billing address - direct attribute access
         user.billing_street = data.get('billing_street')
         user.billing_city = data.get('billing_city')
         user.billing_postal_code = data.get('billing_postal_code')
         user.billing_country = data.get('billing_country')
 
-        # GDPR souhlas
+        # GDPR consent
         if 'gdpr_consent' in data:
             user.gdpr_consent = bool(data['gdpr_consent'])
             if user.gdpr_consent:
                 user.gdpr_consent_date = datetime.utcnow()
             else:
-                user.gdpr_consent_date = None  # Když odebíráme souhlas, vymažeme i datum
+                user.gdpr_consent_date = None  # When withdrawing consent, also clear the date
 
         # Gender
         if 'gender' in data:
@@ -117,24 +121,24 @@ def update_user_profile(user_id, data):
             if gender_str in ('male', 'female'):
                 user.gender = Gender[gender_str.upper()]
 
-        # Věk
+        # Age
         if 'age' in data:
             try:
                 user.age = int(data['age'])
             except (ValueError, TypeError):
                 pass
 
-        # Oblíbené žánry
+        # Favorite genres
         if 'favorite_genres' in data:
             genre_names = data['favorite_genres']
             if isinstance(genre_names, list):
-                # Najdeme všechny existující žánry podle jejich názvů
+                # Find all existing genres by their names
                 genres = Genre.query.filter(Genre.name.in_(genre_names)).all()
 
-                # Vytvoříme slovník pro rychlé vyhledávání existujících žánrů
+                # Create a dictionary for quick lookup of existing genres
                 existing_genres = {genre.name: genre for genre in genres}
 
-                # Vytvoříme nové žánry pro ty, které ještě neexistují
+                # Create new genres for those that do not yet exist
                 new_genres = []
                 for name in genre_names:
                     if name not in existing_genres:
@@ -142,20 +146,24 @@ def update_user_profile(user_id, data):
                         db.session.add(new_genre)
                         new_genres.append(new_genre)
 
-                # Aktualizujeme oblíbené žánry uživatele
+                # Update user's favorite genres
                 user.favorite_genres = list(existing_genres.values()) + new_genres
 
-        # Zdroj reference
+        # Referral source
         if 'referral_source' in data:
             user.referral_source = data['referral_source']
+
+        # Role
+        if 'role' in data and data['role'] in ('USER', 'ADMIN'):
+            user.role = data['role']
 
         db.session.commit()
 
         return {
-            'message': 'Profil byl úspěšně aktualizován',
+            'message': 'Profile successfully updated',
             'user': format_user_data(user)
         }
 
     except Exception as e:
         db.session.rollback()
-        return {'error': f'Chyba při aktualizaci profilu: {str(e)}'}
+        return {'error': f'Error updating profile: {str(e)}'}

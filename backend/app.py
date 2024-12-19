@@ -8,7 +8,7 @@ from flask_session import Session
 from database import db
 
 # Import blueprintů
-from routes import books, users, comments, ratings, favorites, shopping_cart, orders
+from routes import books, users, comments, ratings, favorites, shopping_cart, orders, audit
 
 def setup_logging(app):
    """
@@ -109,6 +109,7 @@ def create_app():
    app.register_blueprint(favorites.bp)
    app.register_blueprint(shopping_cart.bp)
    app.register_blueprint(orders.bp)
+   app.register_blueprint(audit.audit_bp)
 
    return app
 

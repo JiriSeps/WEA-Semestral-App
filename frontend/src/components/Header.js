@@ -11,6 +11,7 @@ export const Header = ({
   toggleProfileForm,
   toggleShoppingCart,
   toggleOrders, // přidáno
+  toggleAuditLog,
   translations 
 }) => (
   <div className="header flex items-center justify-between p-4">
@@ -40,6 +41,13 @@ export const Header = ({
           <button onClick={handleLogout} className="logout-button">
             {translations[language].logout}
           </button>
+
+          {/* Audit Log Button for Admin */}
+          {user?.role === 'ADMIN' && (
+            <button onClick={toggleAuditLog} className="audit-log-button">
+              {translations[language].auditLog}
+            </button>
+          )}
         </div>
       ) : (
         <div className="auth-buttons space-x-2">
